@@ -1,0 +1,64 @@
+<div class="relative">
+
+  <div
+    class="relative rounded-xl border transition-all"
+    [class]="hasError() ? 'border-red-500/60 bg-red-500/5' : isDragging() ? 'border-2 border-indigo-500 bg-indigo-500/5' : 'border-gray-300 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800/40 hover:border-gray-400 dark:hover:border-zinc-600'"
+  >
+    <!-- Floating label -->
+    <label
+      class="absolute -top-2.5 left-3 text-xs px-1 bg-white dark:bg-zinc-900 font-medium transition-colors"
+      [class]="hasError() ? 'text-red-500 dark:text-red-400' : isDragging() ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-zinc-500'"
+    >
+      Image
+    </label>
+
+    @if (preview()) {
+    <div class="relative rounded-xl overflow-hidden m-1">
+      <img [src]="preview()" alt="preview" class="w-full h-48 object-cover rounded-xl" />
+      <button
+        type="button"
+        (click)="clear()"
+        class="absolute top-2 right-2 bg-white/80 dark:bg-zinc-900/80 hover:bg-white dark:hover:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-white rounded-full w-7 h-7 flex items-center justify-center shadow-lg transition-all backdrop-blur-sm border border-gray-200 dark:border-zinc-700 text-sm leading-none"
+      >
+        ✕
+      </button>
+      <div class="absolute bottom-0 left-0 right-0 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm px-3 py-1.5 text-xs text-gray-500 dark:text-zinc-400 truncate">
+        {{ fileName() }}
+      </div>
+    </div>
+    } @else {
+    <label
+      class="flex flex-col items-center justify-center gap-3 w-full h-36 rounded-xl cursor-pointer transition-colors"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave()"
+      (drop)="onDrop($event)"
+    >
+      <div class="w-10 h-10 rounded-xl bg-gray-200 dark:bg-zinc-700/50 flex items-center justify-center transition-colors">
+        <svg class="w-5 h-5 text-gray-400 dark:text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+        </svg>
+      </div>
+      <div class="text-center">
+        <span class="text-sm text-gray-500 dark:text-zinc-400">Glisse une image ici ou </span>
+        <span class="text-sm text-indigo-600 dark:text-indigo-400 font-medium">clique pour choisir</span>
+      </div>
+      <input type="file" accept="image/*" class="hidden" (change)="onChange($event)" />
+    </label>
+    }
+
+    @if (isLoading()) {
+    <div class="mx-3 mb-3 h-0.5 bg-gray-200 dark:bg-zinc-700 overflow-hidden rounded-full">
+      <div
+        class="h-full bg-indigo-500 transition-all duration-150 rounded-full"
+        [style.width.%]="progress()"
+      ></div>
+    </div>
+    }
+  </div>
+
+  @if (hasError()) {
+  <p class="text-red-500 dark:text-red-400 text-xs mt-1.5 px-3">Ce champ est requis.</p>
+  }
+
+</div>

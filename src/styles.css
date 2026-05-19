@@ -1,3 +1,32 @@
-/* You can add global styles to this file, and also import other style files */
-
 @import 'tailwindcss';
+@custom-variant dark (&:where(.dark, .dark *));
+
+mat-icon {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #09090b; }
+::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #52525b; }
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-medium transition-colors cursor-pointer select-none disabled:opacity-50 disabled:cursor-not-allowed h-9 px-4 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-medium transition-colors cursor-pointer select-none disabled:opacity-50 disabled:cursor-not-allowed h-9 px-4 border border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 bg-transparent hover:bg-gray-100 dark:hover:bg-zinc-800;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-medium transition-colors cursor-pointer select-none disabled:opacity-50 disabled:cursor-not-allowed h-9 px-3 text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-100 hover:bg-gray-100 dark:hover:bg-zinc-800/60;
+  }
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-medium transition-colors cursor-pointer select-none disabled:opacity-50 disabled:cursor-not-allowed h-9 px-4 border border-red-300 dark:border-red-500/40 text-red-600 dark:text-red-400 bg-transparent hover:bg-red-50 dark:hover:bg-red-500/10;
+  }
+  .btn-icon {
+    @apply inline-flex items-center justify-center rounded-lg transition-colors cursor-pointer select-none disabled:opacity-50 disabled:cursor-not-allowed w-9 h-9 text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-100 hover:bg-gray-100 dark:hover:bg-zinc-800/60;
+  }
+}

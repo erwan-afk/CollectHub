@@ -1,0 +1,40 @@
+<article
+  class="group relative flex flex-col bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hover:border-gray-300 dark:hover:border-zinc-700"
+  [class]="rarityGlowClass()"
+>
+  <div class="absolute top-0 left-0 right-0 h-0.5 z-10" [class]="rarityAccentClass()"></div>
+
+  <figure class="relative m-0 overflow-hidden">
+    @if (item().image) {
+    <img [src]="item().image" alt="" class="w-full h-44 object-cover transition-transform duration-500 group-hover:scale-105" />
+    <div class="absolute inset-0 bg-gradient-to-t from-black/30 dark:from-zinc-900/50 to-transparent"></div>
+    } @else {
+    <div class="w-full h-44 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-zinc-800 dark:to-zinc-700 flex flex-col items-center justify-center gap-2">
+      <div class="w-12 h-12 rounded-xl bg-gray-200 dark:bg-zinc-700 flex items-center justify-center">
+        <mat-icon class="!text-xl !w-6 !h-6 text-gray-400 dark:text-zinc-500">image</mat-icon>
+      </div>
+      <span class="text-[10px] font-medium text-gray-400 dark:text-zinc-500 uppercase tracking-wider">Aucune image</span>
+    </div>
+    }
+    <span
+      class="absolute top-3 right-3 text-xs font-semibold px-2.5 py-1 rounded-full backdrop-blur-sm border bg-black/50"
+      [class]="rarityBadgeClass()"
+    >
+      {{item().rarity}}
+    </span>
+  </figure>
+
+  <div class="flex flex-col flex-1 p-4">
+    <h2 class="text-sm font-semibold text-gray-900 dark:text-zinc-100 leading-snug mb-1.5">
+      {{item().name || 'Sans nom'}}
+    </h2>
+    <p class="text-xs text-gray-500 dark:text-zinc-500 flex-1 line-clamp-2 leading-relaxed">
+      {{item().description || 'Aucune description'}}
+    </p>
+
+    <div class="mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800 flex items-center justify-between">
+      <span class="text-sm font-bold text-emerald-600 dark:text-emerald-400">{{item().price}} $</span>
+      <mat-icon class="!text-base !w-4 !h-4 text-gray-300 dark:text-zinc-700 group-hover:text-gray-400 dark:group-hover:text-zinc-500 transition-colors">chevron_right</mat-icon>
+    </div>
+  </div>
+</article>

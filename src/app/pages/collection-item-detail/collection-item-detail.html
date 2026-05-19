@@ -1,0 +1,153 @@
+<div class="item-page">
+  <div class="bg-decor"></div>
+
+  <div class="layout">
+    <!-- Preview -->
+    <aside class="preview-panel">
+      <div class="preview-sticky">
+        <div class="preview-header">
+          <span class="preview-label">Apercu</span>
+          <span class="preview-badge" [class.pulse]="itemFormGroup.dirty">
+            {{ itemFormGroup.dirty ? 'Modifie' : 'A jour' }}
+          </span>
+        </div>
+        <collection-item-card [item]="collectionItem()" />
+        @if (selectedCollection()) {
+        <div class="meta-card">
+          <div class="meta-row">
+            <span class="meta-key">Collection</span>
+            <span class="meta-val">{{ selectedCollection()?.title }}</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-key">Reference</span>
+            <span class="meta-val mono">{{ itemId() ? '#' + itemId() : 'Nouveau' }}</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-key">Rarete</span>
+            <span class="meta-val accent">{{ collectionItem().rarity || '—' }}</span>
+          </div>
+        </div>
+        }
+      </div>
+    </aside>
+
+    <!-- Formulaire -->
+    <main class="form-panel">
+      @if (selectedCollection()) {
+      <nav class="breadcrumb">
+        <a [routerLink]="['/collection', collectionId()]" class="crumb">
+          <mat-icon>folder</mat-icon>
+          {{ selectedCollection()?.title }}
+        </a>
+        <mat-icon class="crumb-sep">chevron_right</mat-icon>
+        <span class="crumb active">{{ itemId() ? 'Edition' : 'Creation' }}</span>
+        @if (itemId()) { <span class="crumb-id">#{{ itemId() }}</span> }
+      </nav>
+      }
+
+      <div class="form-title-row">
+        <h1>{{ itemId() ? "Modifier l'objet" : 'Ajouter un objet' }}</h1>
+        <div class="nav-links">
+          @if (prevItemId()) {
+          <a [routerLink]="['/collection', collectionId(), 'item', prevItemId()]" class="next-link">
+            <mat-icon>arrow_back</mat-icon> Objet précédent
+          </a>
+          }
+          @if (nextItemId()) {
+          <a [routerLink]="['/collection', collectionId(), 'item', nextItemId()]" class="next-link">
+            Objet suivant <mat-icon>arrow_forward</mat-icon>
+          </a>
+          }
+        </div>
+      </div>
+
+      <form [formGroup]="itemFormGroup" (submit)="submit($event)" class="the-form">
+
+        <fieldset class="form-block">
+          <legend><mat-icon>badge</mat-icon> Identite</legend>
+
+          <div class="field">
+            <label class="field-label" for="name">Nom</label>
+            <input id="name" type="text" formControlName="name" placeholder="Ex: Piece de 1972" autocomplete="off" class="field-input" [class.field-input--error]="isFieldValid('name')" />
+            @if (isFieldValid('name')) {
+            <span class="field-error">Le nom est requis</span>
+            }
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="desc">Description</label>
+            <textarea id="desc" formControlName="description" rows="3" placeholder="Decrivez l'objet..." class="field-input" [class.field-input--error]="isFieldValid('description')"></textarea>
+            @if (isFieldValid('description')) {
+            <span class="field-error">La description est requise</span>
+            }
+          </div>
+        </fieldset>
+
+        <fieldset class="form-block">
+          <legend><mat-icon>tune</mat-icon> Caracteristiques</legend>
+
+          <div class="form-row-2">
+            <div class="field">
+              <label class="field-label" for="rarity">Rarete</label>
+              <div class="field-select-wrap">
+                <select id="rarity" formControlName="rarity" class="field-input field-select" [class.field-input--error]="isFieldValid('rarity')">
+                  <option value="" disabled selected>Choisir...</option>
+                  @for (r of rarities; track r) {
+                  <option [value]="r">{{ r }}</option>
+                  }
+                </select>
+                <mat-icon class="field-select-icon">expand_more</mat-icon>
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="price">Prix estime</label>
+              <div class="field-input-wrap">
+                <input id="price" type="number" formControlName="price" min="0" step="0.01" placeholder="0.00" class="field-input" [class.field-input--error]="isFieldValid('price')" />
+                <span class="field-suffix">$</span>
+              </div>
+              @if (isFieldValid('price')) {
+              <span class="field-error">Prix requis (0 minimum)</span>
+              }
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-block">
+          <legend><mat-icon>image</mat-icon> Image</legend>
+          <div class="field">
+            <label class="field-label" for="image">URL de l'image</label>
+            <input id="image" type="url" formControlName="image" placeholder="https://exemple.com/image.jpg" class="field-input" />
+          </div>
+          @if (itemFormGroup.get('image')?.value) {
+          <img [src]="itemFormGroup.get('image')?.value" alt="aperçu" class="w-full h-40 object-cover rounded-xl mt-1" (error)="itemFormGroup.patchValue({ image: '' })" />
+          }
+        </fieldset>
+
+        <div class="form-actions">
+          @if (itemId()) {
+          <button type="button" class="btn-delete" (click)="deleteItem()" [disabled]="isDeleting()">
+            @if (isDeleting()) {
+            <mat-spinner diameter="16"></mat-spinner>
+            } @else {
+            <mat-icon>delete_outline</mat-icon>
+            }
+            Supprimer
+          </button>
+          }
+          <div class="actions-right">
+            <button type="button" class="btn-cancel" (click)="cancel()">Annuler</button>
+            <button type="submit" class="btn-save" [disabled]="itemFormGroup.invalid || isSaving()">
+              @if (isSaving()) {
+              <mat-spinner diameter="16"></mat-spinner>
+              } @else {
+              <mat-icon>{{ itemId() ? 'check' : 'add' }}</mat-icon>
+              }
+              {{ itemId() ? 'Enregistrer' : 'Creer' }}
+            </button>
+          </div>
+        </div>
+      </form>
+    </main>
+  </div>
+</div>

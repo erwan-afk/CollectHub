@@ -29,6 +29,17 @@ yarn-error.log
 !.vscode/mcp.json
 .history/*
 
+# Environment
+.env
+.env.*
+
+# AI assistants
+.claude/
+
+# Backend
+backend/node_modules/
+backend/dist/
+
 # Miscellaneous
 /.angular/cache
 .sass-cache/
