@@ -39,6 +39,9 @@ yarn-error.log
 # Backend
 backend/node_modules/
 backend/dist/
+backend/coverage/
+backend/uploads/
+backend/test-invoices/
 
 # Miscellaneous
 /.angular/cache
