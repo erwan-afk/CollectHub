@@ -3,13 +3,17 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
+    "dev": "concurrently --kill-others-on-fail --prefix-colors \"bgBlue.bold,bgGreen.bold,bgMagenta.bold,bgYellow.bold,bgCyan.bold\" --names \"DOCKER,SERVER,WORKER,FRONT,OLLAMA\" \"docker compose -f backend/docker-compose.yml up\" \"npm run dev --prefix backend\" \"npm run worker --prefix backend\" \"ng serve\" \"npm run ollama:wait\"",
+    "ollama:wait": "node -e \"const check=()=>fetch('http://localhost:11434/api/tags').then(r=>r.ok).then(ok=>{if(ok){console.log('✓ Ollama ready');process.exit(0)}else{throw new Error()}}).catch(()=>{setTimeout(check,2000)});check()\"",
+    "ollama:pull": "node -e \"const m=process.env.OLLAMA_MODEL||'qwen2.5:3b';fetch('http://localhost:11434/api/pull',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:m,stream:!1})}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()}).then(d=>console.log('✓',d.status)).catch(e=>console.error('✗',e.message))\"",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
     "db:seed": "tsx --env-file=.env scripts/seed-neon.ts",
-    "server": "tsx --env-file=.env server/index.ts"
+    "server": "tsx --env-file=.env server/index.ts",
+    "generate:invoices": "npm run generate:invoices --prefix backend"
   },
   "private": true,
   "packageManager": "npm@10.8.2",
@@ -24,6 +28,7 @@
     "@angular/platform-browser": "^21.2.0",
     "@angular/router": "^21.2.0",
     "rxjs": "~7.8.0",
+    "socket.io-client": "^4.8.3",
     "tslib": "^2.3.0"
   },
   "devDependencies": {
@@ -42,6 +47,7 @@
     "@types/express": "^5.0.6",
     "@typescript-eslint/eslint-plugin": "^8.59.4",
     "@typescript-eslint/parser": "^8.59.4",
+    "concurrently": "^9.2.1",
     "cors": "^2.8.6",
     "eslint": "^10.4.0",
     "express": "^5.2.1",
