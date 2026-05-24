@@ -40,23 +40,45 @@ import app from '../app';
 import { signAccessToken } from '../services/auth.service';
 import type { Invoice } from '../types/invoice';
 
-const TOKEN = signAccessToken({ sub: 1, email: 'comptable@demo.com', role: 'accountant', orgId: 1 });
+const TOKEN = signAccessToken({
+  sub: 1,
+  email: 'comptable@demo.com',
+  role: 'accountant',
+  orgId: 1,
+});
 
 function makeInvoice(status: Invoice['status']): Invoice {
   return {
-    id: 1, supplierId: null, supplier: null, invoiceNumber: 'F-001',
-    issueDate: '2025-01-01', dueDate: '2025-02-01',
-    amountHt: 100, amountTva: 20, amountTtc: 120, currency: 'EUR',
-    status, filePath: '/tmp/test.pdf', fileMime: 'application/pdf',
-    fileHash: 'abc', ocrConfidence: null, lines: [], history: [],
-    createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+    id: 1,
+    supplierId: null,
+    supplier: null,
+    invoiceNumber: 'F-001',
+    issueDate: '2025-01-01',
+    dueDate: '2025-02-01',
+    amountHt: 100,
+    amountTva: 20,
+    amountTtc: 120,
+    currency: 'EUR',
+    status,
+    filePath: '/tmp/test.pdf',
+    fileMime: 'application/pdf',
+    fileHash: 'abc',
+    ocrConfidence: null,
+    lines: [],
+    riskAssessment: null,
+    history: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 }
 
 // ── Transitions valides ───────────────────────────────────────────────────────
 
 describe('Transitions valides', () => {
-  beforeEach(() => { mockGetInvoiceById.mockReset(); mockTransition.mockReset(); });
+  beforeEach(() => {
+    mockGetInvoiceById.mockReset();
+    mockTransition.mockReset();
+  });
 
   const validCases: Array<[Invoice['status'], Invoice['status']]> = [
     ['DRAFT', 'PENDING_VALIDATION'],
@@ -84,7 +106,10 @@ describe('Transitions valides', () => {
 // ── Transitions invalides ─────────────────────────────────────────────────────
 
 describe('Transitions invalides', () => {
-  beforeEach(() => { mockGetInvoiceById.mockReset(); mockTransition.mockReset(); });
+  beforeEach(() => {
+    mockGetInvoiceById.mockReset();
+    mockTransition.mockReset();
+  });
 
   const invalidCases: Array<[Invoice['status'], Invoice['status']]> = [
     ['DRAFT', 'VALIDATED'],
@@ -110,9 +135,12 @@ describe('Transitions invalides', () => {
 // ── Cas limites ───────────────────────────────────────────────────────────────
 
 describe('Cas limites', () => {
-  beforeEach(() => { mockGetInvoiceById.mockReset(); mockTransition.mockReset(); });
+  beforeEach(() => {
+    mockGetInvoiceById.mockReset();
+    mockTransition.mockReset();
+  });
 
-  it('retourne 404 si la facture n\'existe pas', async () => {
+  it("retourne 404 si la facture n'existe pas", async () => {
     mockGetInvoiceById.mockResolvedValue(null);
     const res = await request(app)
       .post('/api/v1/invoices/999/transition')
@@ -122,7 +150,9 @@ describe('Cas limites', () => {
   });
 
   it('retourne 401 sans token', async () => {
-    const res = await request(app).post('/api/v1/invoices/1/transition').send({ to: 'PENDING_VALIDATION' });
+    const res = await request(app)
+      .post('/api/v1/invoices/1/transition')
+      .send({ to: 'PENDING_VALIDATION' });
     expect(res.status).toBe(401);
   });
 
