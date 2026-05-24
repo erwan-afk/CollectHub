@@ -1,15 +1,13 @@
 import { Pool } from 'pg';
-import * as path from 'path';
-import * as fs from 'fs';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import { env } from '../config/env';
+import * as schema from './schema';
 
 export const pool = new Pool({
   connectionString: env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
 });
 
-export async function initDatabase(): Promise<void> {
-  const schemaPath = path.resolve(__dirname, 'schema.sql');
-  const schema = fs.readFileSync(schemaPath, 'utf-8');
-  await pool.query(schema);
-}
+// Instance Drizzle partagée — utiliser `db` pour le nouveau code,
+// `pool` pour les requêtes existantes en attente de migration.
+export const db = drizzle(pool, { schema });
