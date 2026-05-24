@@ -63,6 +63,12 @@ export const routes: Routes = [
       import('./pages/invoice-dashboard/invoice-dashboard').then((m) => m.InvoiceDashboard),
   },
   {
+    path: 'invoices/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/invoice-detail/invoice-detail').then((m) => m.InvoiceDetail),
+  },
+  {
     path: 'invoices/:id/review',
     canActivate: [authGuard],
     loadComponent: () =>

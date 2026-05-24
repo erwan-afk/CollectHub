@@ -81,8 +81,53 @@ export interface Invoice {
   riskAssessment: RiskAssessment | null;
   lines: InvoiceLine[];
   history?: InvoiceStatusHistoryEntry[];
+  /** Sprint 5 — Factur-X profile detected on import */
+  facturXProfile?: FacturXProfile;
+  /** Sprint 5 — lifecycle events trace */
+  lifecycle?: LifecycleEvent[];
   createdAt: string;
   updatedAt: string;
+}
+
+// ─── Sprint 5 : Factur-X / e-invoicing ────────────────────────────────────
+
+export type FacturXProfile = 'MINIMUM' | 'BASIC_WL' | 'BASIC' | 'EN16931' | 'EXTENDED';
+
+export const FACTURX_PROFILE_LABELS: Record<FacturXProfile, string> = {
+  MINIMUM: 'Minimum',
+  BASIC_WL: 'Basic WL',
+  BASIC: 'Basic',
+  EN16931: 'EN 16931',
+  EXTENDED: 'Extended',
+};
+
+export type LifecycleStatus = 'DEPOSITED' | 'REFUSED' | 'MADE_AVAILABLE' | 'SETTLED';
+
+export const LIFECYCLE_STATUS_LABELS: Record<LifecycleStatus, string> = {
+  DEPOSITED: 'Déposée',
+  REFUSED: 'Refusée',
+  MADE_AVAILABLE: 'Mise à disposition',
+  SETTLED: 'Encaissée',
+};
+
+export interface LifecycleEvent {
+  id: number;
+  invoiceId: number;
+  status: LifecycleStatus;
+  occurredAt: string;
+  actor: string;
+  comment: string | null;
+}
+
+export interface FacturXImportResult {
+  invoiceId: number;
+  profile: FacturXProfile;
+  validation: {
+    valid: boolean;
+    xsdErrors: Array<{ line: number; column: number; message: string }>;
+    businessRuleErrors: Array<{ ruleId: string; message: string }>;
+  };
+  warnings: string[];
 }
 
 export interface InvoiceUpdate {

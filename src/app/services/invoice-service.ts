@@ -9,6 +9,9 @@ import {
   InvoiceFilters,
   InvoiceStatus,
   InvoiceUpdate,
+  FacturXImportResult,
+  LifecycleEvent,
+  LifecycleStatus,
 } from '../models/invoice';
 import { Supplier } from '../models/supplier';
 
@@ -72,6 +75,49 @@ export class InvoiceService {
   /** Sprint 3 : liste les corrections d'une facture */
   getCorrections(invoiceId: number): Observable<Correction[]> {
     return this.http.get<Correction[]>(`${API}/${invoiceId}/corrections`);
+  }
+
+  /** Sprint 5 : URL de téléchargement Factur-X PDF */
+  facturXPdfUrl(id: number): string {
+    return `${API}/${id}/facturx.pdf`;
+  }
+
+  /** Sprint 5 : URL de téléchargement Factur-X XML (debug) */
+  facturXXmlUrl(id: number): string {
+    return `${API}/${id}/facturx.xml`;
+  }
+
+  /** Sprint 5 : Import Factur-X (multipart PDF) */
+  importFacturX(file: File): Observable<FacturXImportResult> {
+    const fd = new FormData();
+    fd.append('file', file);
+    return this.http.post<FacturXImportResult>(`${API}/import/facturx`, fd);
+  }
+
+  /** Sprint 5 : Import UBL (multipart XML) */
+  importUbl(file: File): Observable<FacturXImportResult> {
+    const fd = new FormData();
+    fd.append('file', file);
+    return this.http.post<FacturXImportResult>(`${API}/import/ubl`, fd);
+  }
+
+  /** Sprint 5 : Cycle de vie — événements */
+  getLifecycle(invoiceId: number): Observable<{ invoiceId: number; events: LifecycleEvent[] }> {
+    return this.http.get<{ invoiceId: number; events: LifecycleEvent[] }>(
+      `${API}/${invoiceId}/lifecycle`,
+    );
+  }
+
+  /** Sprint 5 : Cycle de vie — enregistrer un événement */
+  addLifecycleEvent(
+    invoiceId: number,
+    status: LifecycleStatus,
+    comment?: string,
+  ): Observable<LifecycleEvent> {
+    return this.http.post<LifecycleEvent>(`${API}/${invoiceId}/lifecycle-event`, {
+      status,
+      comment,
+    });
   }
 
   delete(id: number): Observable<void> {

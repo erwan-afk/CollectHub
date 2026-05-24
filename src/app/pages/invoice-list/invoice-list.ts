@@ -87,7 +87,7 @@ import { Spinner } from '../../components/spinner/spinner';
               @for (inv of filtered(); track inv.id) {
                 <tr
                   class="border-t border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/30 cursor-pointer"
-                  [routerLink]="['/invoices', inv.id, 'review']"
+                  [routerLink]="['/invoices', inv.id]"
                 >
                   <td class="px-3 py-2 font-mono text-zinc-700 dark:text-zinc-200">
                     {{ inv.invoiceNumber || '#' + inv.id }}
@@ -181,9 +181,7 @@ export class InvoiceList implements OnInit, OnDestroy {
     this.rtSub = this.rt.status$.subscribe((event) => {
       this.invoices.update((list) =>
         list.map((inv) =>
-          inv.id === event.invoiceId
-            ? { ...inv, status: event.status as InvoiceStatus }
-            : inv,
+          inv.id === event.invoiceId ? { ...inv, status: event.status as InvoiceStatus } : inv,
         ),
       );
     });
