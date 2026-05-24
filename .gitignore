@@ -42,6 +42,8 @@ backend/dist/
 backend/coverage/
 backend/uploads/
 backend/test-invoices/
+backend/cookies.txt
+backend/*.pdf
 
 # Miscellaneous
 /.angular/cache
