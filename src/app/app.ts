@@ -13,7 +13,9 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { AuthService } from './services/auth.service';
 import { CollectionService } from './services/collection-service';
+import { TabService } from './services/tab.service';
 import { Collection } from './models/collection';
 
 @Component({
@@ -33,7 +35,9 @@ import { Collection } from './models/collection';
 })
 export class App implements OnInit {
   private readonly collectionService = inject(CollectionService);
-  private readonly router = inject(Router);
+  readonly auth = inject(AuthService);
+  readonly tabSvc = inject(TabService);
+  readonly router = inject(Router);
 
   isDark = signal(true);
   collections = signal<Collection[]>([]);
@@ -45,9 +49,20 @@ export class App implements OnInit {
   activeCollectionId = computed(() => {
     const url = this.currentUrl();
     const match = url.match(/\/collection\/(\d+)/);
-    if (match) return parseInt(match[1]);
-    const all = this.collections();
-    return all.length > 0 ? all[0].id : null;
+    return match ? parseInt(match[1]) : null;
+  });
+
+  section = computed<
+    'collection' | 'invoices' | 'suppliers' | 'dashboard' | 'architecture' | 'ai-chat' | 'other'
+  >(() => {
+    const url = this.currentUrl();
+    if (url.startsWith('/invoices/dashboard')) return 'dashboard';
+    if (url.startsWith('/invoices')) return 'invoices';
+    if (url.startsWith('/suppliers')) return 'suppliers';
+    if (url.startsWith('/collection')) return 'collection';
+    if (url.startsWith('/architecture')) return 'architecture';
+    if (url.startsWith('/ai-chat')) return 'ai-chat';
+    return 'other';
   });
 
   ngOnInit() {
@@ -56,7 +71,7 @@ export class App implements OnInit {
     this.isDark.set(dark);
     this.applyTheme(dark);
     this.loadCollections();
-    this.router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe(() => {
+    this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe(() => {
       this.currentUrl.set(this.router.url);
     });
   }
@@ -146,5 +161,11 @@ export class App implements OnInit {
 
   isActive(id: number): boolean {
     return this.activeCollectionId() === id;
+  }
+
+  logout(): void {
+    this.auth.logout().subscribe(() => {
+      this.router.navigate(['/login']);
+    });
   }
 }

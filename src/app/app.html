@@ -1,5 +1,4 @@
 <mat-sidenav-container class="h-screen bg-gray-50 dark:bg-zinc-950 transition-colors">
-  <!-- Sidebar gauche -->
   <mat-sidenav
     mode="side"
     opened
@@ -9,13 +8,13 @@
       <!-- Header sidebar -->
       <div class="px-4 py-4 border-b border-gray-100 dark:border-zinc-800">
         <a routerLink="/collection" class="flex items-center gap-2.5 no-underline mb-3">
-          <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <div
+            class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20"
+          >
             <mat-icon class="!text-sm !leading-none !w-4 !h-4 text-white">inventory_2</mat-icon>
           </div>
           <span class="text-sm font-semibold text-gray-900 dark:text-zinc-100">CollectHub</span>
         </a>
-
-        <!-- Input nouvelle collection -->
         <div class="flex gap-1.5">
           <input
             type="text"
@@ -45,15 +44,14 @@
           [class.dark:hover:bg-zinc-800]="!isActive(collection.id)"
           (click)="navigateToCollection(collection.id)"
         >
-          <!-- Icône collection -->
-          <mat-icon class="!text-lg !w-5 !h-5 flex-shrink-0"
+          <mat-icon
+            class="!text-lg !w-5 !h-5 flex-shrink-0"
             [class.text-indigo-600]="isActive(collection.id)"
             [class.dark:text-indigo-400]="isActive(collection.id)"
             [class.text-gray-400]="!isActive(collection.id)"
-          >folder</mat-icon>
-
+            >folder</mat-icon
+          >
           @if (editingId() === collection.id) {
-          <!-- Mode édition -->
           <input
             type="text"
             class="flex-1 text-xs px-1.5 py-0.5 rounded border border-indigo-300 dark:border-indigo-600 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 outline-none"
@@ -65,19 +63,18 @@
             autofocus
           />
           } @else {
-          <!-- Titre -->
           <span
             class="flex-1 text-xs font-medium truncate"
             [class.text-gray-900]="!isActive(collection.id)"
             [class.dark:text-zinc-100]="!isActive(collection.id)"
             [class.text-indigo-700]="isActive(collection.id)"
             [class.dark:text-indigo-300]="isActive(collection.id)"
-          >{{collection.title}}</span>
-          <span class="text-[10px] text-gray-400 dark:text-zinc-500 tabular-nums">{{collection.items.length}}</span>
-          }
-
-          <!-- Boutons d'action (survol) -->
-          @if (editingId() !== collection.id) {
+            >{{collection.title}}</span
+          >
+          <span class="text-[10px] text-gray-400 dark:text-zinc-500 tabular-nums"
+            >{{collection.items.length}}</span
+          >
+          } @if (editingId() !== collection.id) {
           <div class="hidden group-hover:flex items-center gap-0.5 flex-shrink-0">
             <button
               class="w-5 h-5 rounded flex items-center justify-center text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors"
@@ -96,23 +93,79 @@
           </div>
           }
         </div>
-        }
-
-        @if (collections().length === 0) {
+        } @if (collections().length === 0) {
         <div class="text-center py-8">
-          <mat-icon class="!text-3xl !w-8 !h-8 text-gray-300 dark:text-zinc-600 mb-2">folder_off</mat-icon>
+          <mat-icon class="!text-3xl !w-8 !h-8 text-gray-300 dark:text-zinc-600 mb-2"
+            >folder_off</mat-icon
+          >
           <p class="text-xs text-gray-400 dark:text-zinc-500">Aucune collection</p>
         </div>
         }
       </div>
 
       <!-- Footer sidebar -->
-      <div class="px-4 py-3 border-t border-gray-100 dark:border-zinc-800">
+      <div class="px-4 py-3 border-t border-gray-100 dark:border-zinc-800 space-y-1">
+        <a routerLink="/invoices" class="nav-link" [class.nav-active]="section() === 'invoices'">
+          <mat-icon class="!text-base !w-4 !h-4">receipt_long</mat-icon>
+          Factures
+        </a>
+        <a routerLink="/suppliers" class="nav-link" [class.nav-active]="section() === 'suppliers'">
+          <mat-icon class="!text-base !w-4 !h-4">business</mat-icon>
+          Fournisseurs
+        </a>
+        <a
+          routerLink="/invoices/dashboard"
+          class="nav-link"
+          [class.nav-active]="section() === 'dashboard'"
+        >
+          <mat-icon class="!text-base !w-4 !h-4">dashboard</mat-icon>
+          Dashboard
+        </a>
+        <a
+          routerLink="/architecture"
+          class="nav-link"
+          [class.nav-active]="section() === 'architecture'"
+        >
+          <mat-icon class="!text-base !w-4 !h-4">account_tree</mat-icon>
+          Architecture
+        </a>
+        <a
+          routerLink="/ai-chat"
+          class="nav-link"
+          [class.nav-active]="section() === 'ai-chat'"
+        >
+          <mat-icon class="!text-base !w-4 !h-4">smart_toy</mat-icon>
+          Agent IA
+        </a>
+
+        <!-- Auth : user info + login/logout -->
+        @if (auth.isAuthenticated()) {
+        <div class="pt-2 border-t border-gray-100 dark:border-zinc-800">
+          <p class="text-[10px] text-gray-400 dark:text-zinc-500 truncate px-1">
+            {{ auth.currentUser()?.email }}
+          </p>
+        </div>
+        <button
+          class="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg transition-colors text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950"
+          (click)="logout()"
+        >
+          <mat-icon class="!text-base !w-4 !h-4">logout</mat-icon>
+          Déconnexion
+        </button>
+        } @else {
+        <a routerLink="/login" class="nav-link">
+          <mat-icon class="!text-base !w-4 !h-4">login</mat-icon>
+          Connexion
+        </a>
+        }
+
         <button
           class="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg transition-colors text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800"
           (click)="toggleTheme()"
         >
-          <mat-icon class="!text-base !w-4 !h-4">{{ isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+          <mat-icon class="!text-base !w-4 !h-4"
+            >{{ isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon
+          >
           {{ isDark() ? 'Mode clair' : 'Mode sombre' }}
         </button>
       </div>
@@ -121,26 +174,73 @@
 
   <!-- Contenu principal -->
   <mat-sidenav-content>
-    <!-- Top navbar -->
-    <nav class="sticky top-0 z-40 h-12 border-b border-gray-200 dark:border-zinc-800/80 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-xl px-6 flex items-center justify-between transition-colors">
-      <div class="flex items-center gap-3">
-        <span class="text-xs font-medium text-gray-500 dark:text-zinc-400">
-          @let active = activeCollectionId();
-          @if (active) {
-          Collection #{{ active }}
+    @if (section() !== 'other') {
+    <nav
+      class="sticky top-0 z-40 h-12 border-b border-gray-200 dark:border-zinc-800/80 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-xl px-4 flex items-center justify-between transition-colors gap-2"
+    >
+      <div class="flex items-center gap-1 overflow-x-auto min-w-0">
+        <!-- Label de section (toujours visible, cliquable sur factures) -->
+        <span class="text-xs font-medium text-gray-500 dark:text-zinc-400 whitespace-nowrap flex-shrink-0">
+          @switch (section()) {
+            @case ('collection') { @if (activeCollectionId(); as cid) { Collection #{{ cid }} } }
+            @case ('invoices') {
+              <a routerLink="/invoices" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors no-underline text-gray-500 dark:text-zinc-400">Factures</a>
+            }
+            @case ('suppliers') { Fournisseurs }
+            @case ('dashboard') { Dashboard factures }
+            @case ('architecture') { Architecture }
+            @case ('ai-chat') { Agent IA }
           }
         </span>
+
+        <!-- Onglets factures dans la topnav -->
+        @if (tabSvc.tabs().length > 0 && section() === 'invoices') {
+          <span class="text-zinc-300 dark:text-zinc-600 flex-shrink-0 text-xs">/</span>
+          @for (tab of tabSvc.tabs(); track tab.id) {
+          <button
+            class="group flex items-center gap-1 px-2.5 py-1 rounded-md text-xs transition-colors whitespace-nowrap flex-shrink-0"
+            [class.bg-indigo-50]="tabSvc.activeId() === tab.id"
+            [class.dark:bg-indigo-950]="tabSvc.activeId() === tab.id"
+            [class.text-indigo-700]="tabSvc.activeId() === tab.id"
+            [class.dark:text-indigo-300]="tabSvc.activeId() === tab.id"
+            [class.text-zinc-500]="tabSvc.activeId() !== tab.id"
+            [class.hover:bg-zinc-100]="tabSvc.activeId() !== tab.id"
+            [class.dark:hover:bg-zinc-800]="tabSvc.activeId() !== tab.id"
+            [class.hover:text-zinc-700]="tabSvc.activeId() !== tab.id"
+            [class.dark:hover:text-zinc-300]="tabSvc.activeId() !== tab.id"
+            (click)="router.navigateByUrl(tab.path)"
+          >
+            <mat-icon class="!text-[11px] !w-3 !h-3 flex-shrink-0">receipt_long</mat-icon>
+            <span class="max-w-[120px] truncate">{{ tab.label }}</span>
+            <span
+              class="w-3.5 h-3.5 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity leading-none text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+              (click)="$event.stopPropagation(); tabSvc.closeTab(tab.id)"
+              title="Fermer"
+            >×</span>
+          </button>
+          }
+        }
       </div>
       <div class="flex items-center gap-1">
-        <button
-          class="btn-ghost text-xs"
-          (click)="addItemToActiveCollection()"
-        >
+        @switch (section()) { @case ('collection') { @if (activeCollectionId()) {
+        <button class="btn-ghost text-xs" (click)="addItemToActiveCollection()">
           <mat-icon class="!text-base !w-4 !h-4">add</mat-icon>
           Nouvel objet
         </button>
+        } } @case ('invoices') {
+        <a routerLink="/invoices/upload" class="btn-ghost text-xs no-underline">
+          <mat-icon class="!text-base !w-4 !h-4">upload_file</mat-icon>
+          Importer une facture
+        </a>
+        } @case ('suppliers') {
+        <a routerLink="/suppliers" class="btn-ghost text-xs no-underline">
+          <mat-icon class="!text-base !w-4 !h-4">add_business</mat-icon>
+          Nouveau fournisseur
+        </a>
+        } }
       </div>
     </nav>
+    }
     <router-outlet />
   </mat-sidenav-content>
 </mat-sidenav-container>

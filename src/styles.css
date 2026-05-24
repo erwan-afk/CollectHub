@@ -29,4 +29,10 @@ mat-icon {
   .btn-icon {
     @apply inline-flex items-center justify-center rounded-lg transition-colors cursor-pointer select-none disabled:opacity-50 disabled:cursor-not-allowed w-9 h-9 text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-100 hover:bg-gray-100 dark:hover:bg-zinc-800/60;
   }
+  .input {
+    @apply text-xs px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700
+           bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100
+           placeholder-zinc-400 dark:placeholder-zinc-500 outline-none
+           focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400;
+  }
 }
