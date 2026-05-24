@@ -1,0 +1,14 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Field parser (regex) sur texte extrait > snapshot des champs extraits (golden test) 1`] = `
+{
+  "amountHt": 1000,
+  "amountTtc": 1200,
+  "amountTva": 200,
+  "dueDate": "2025-04-15",
+  "iban": "FR7630006000011234567890189",
+  "invoiceNumber": "F-2025-0042",
+  "issueDate": "2025-03-15",
+  "siret": "38012986607000",
+}
+`;
