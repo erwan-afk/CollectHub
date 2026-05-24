@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Factur-X / EN 16931 — CII (Cross Industry Invoice) template.
+  Namespaces: rsm (root), ram (reusable aggregate), udt (unqualified data type), qdt (qualified).
+  BT references: EN 16931-1:2017 + FNFE-MPE Factur-X 1.0.07.
+-->
+<rsm:CrossIndustryInvoice
+  xmlns:rsm="urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100"
+  xmlns:ram="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100"
+  xmlns:udt="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100"
+  xmlns:qdt="urn:un:unece:uncefact:data:standard:QualifiedDataType:100"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <!-- BT-23 / BT-24 — Document context (profile identification) -->
+  <rsm:ExchangedDocumentContext>
+    <ram:GuidelineSpecifiedDocumentContextParameter>
+      <ram:ID>{{guidelineUrn}}</ram:ID>
+    </ram:GuidelineSpecifiedDocumentContextParameter>
+  </rsm:ExchangedDocumentContext>
+
+  <!-- BT-1 / BT-2 / BT-3 — Document header -->
+  <rsm:ExchangedDocument>
+    <ram:ID>{{invoiceNumber}}</ram:ID>
+    <ram:TypeCode>{{typeCode}}</ram:TypeCode>
+    <ram:IssueDateTime>
+      <udt:DateTimeString format="102">{{issueDateFormatted}}</udt:DateTimeString>
+    </ram:IssueDateTime>
+    {{#note}}
+    <ram:IncludedNote>
+      <ram:Content>{{note}}</ram:Content>
+    </ram:IncludedNote>
+    {{/note}}
+  </rsm:ExchangedDocument>
+
+  <rsm:SupplyChainTradeTransaction>
+
+    <!-- ── Lines (BT-126 to BT-162) ── -->
+    {{#lines}}
+    <ram:IncludedSupplyChainTradeLineItem>
+      <ram:AssociatedDocumentLineDocument>
+        <ram:LineID>{{id}}</ram:LineID>
+        {{#note}}
+        <ram:IncludedNote><ram:Content>{{note}}</ram:Content></ram:IncludedNote>
+        {{/note}}
+      </ram:AssociatedDocumentLineDocument>
+      <ram:SpecifiedTradeProduct>
+        <ram:Name>{{description}}</ram:Name>
+        {{#sellerItemId}}<ram:SellerAssignedID>{{sellerItemId}}</ram:SellerAssignedID>{{/sellerItemId}}
+        {{#buyerItemId}}<ram:BuyerAssignedID>{{buyerItemId}}</ram:BuyerAssignedID>{{/buyerItemId}}
+      </ram:SpecifiedTradeProduct>
+      <ram:SpecifiedLineTradeAgreement>
+        <ram:NetPriceProductTradePrice>
+          <ram:ChargeAmount>{{unitPriceFormatted}}</ram:ChargeAmount><!-- BT-146 -->
+        </ram:NetPriceProductTradePrice>
+      </ram:SpecifiedLineTradeAgreement>
+      <ram:SpecifiedLineTradeDelivery>
+        <ram:BilledQuantity unitCode="{{unitCode}}">{{quantityFormatted}}</ram:BilledQuantity><!-- BT-129/BT-130 -->
+      </ram:SpecifiedLineTradeDelivery>
+      <ram:SpecifiedLineTradeSettlement>
+        <ram:ApplicableTradeTax>
+          <ram:TypeCode>VAT</ram:TypeCode>
+          <ram:CategoryCode>{{taxCategoryCode}}</ram:CategoryCode><!-- BT-151 -->
+          <ram:RateApplicablePercent>{{taxRate}}</ram:RateApplicablePercent><!-- BT-152 -->
+        </ram:ApplicableTradeTax>
+        <ram:SpecifiedTradeSettlementLineMonetarySummation>
+          <ram:LineTotalAmount>{{lineNetAmountFormatted}}</ram:LineTotalAmount><!-- BT-131 -->
+        </ram:SpecifiedTradeSettlementLineMonetarySummation>
+      </ram:SpecifiedLineTradeSettlement>
+    </ram:IncludedSupplyChainTradeLineItem>
+    {{/lines}}
+
+    <!-- ── Header trade agreement ── -->
+    <ram:ApplicableHeaderTradeAgreement>
+      {{#buyerReference}}
+      <ram:BuyerReference>{{buyerReference}}</ram:BuyerReference><!-- BT-10 -->
+      {{/buyerReference}}
+
+      <!-- Seller (BT-27..BT-44) -->
+      <ram:SellerTradeParty>
+        <ram:Name>{{seller.name}}</ram:Name><!-- BT-27 -->
+        {{#seller.legalId}}
+        <ram:SpecifiedLegalOrganization>
+          <ram:ID schemeID="{{seller.legalIdScheme}}">{{seller.legalId}}</ram:ID><!-- BT-30 -->
+        </ram:SpecifiedLegalOrganization>
+        {{/seller.legalId}}
+        {{#seller.vatNumber}}
+        <ram:SpecifiedTaxRegistration>
+          <ram:ID schemeID="VA">{{seller.vatNumber}}</ram:ID><!-- BT-31 -->
+        </ram:SpecifiedTaxRegistration>
+        {{/seller.vatNumber}}
+        <ram:PostalTradeAddress>
+          {{#seller.address.line1}}<ram:LineOne>{{seller.address.line1}}</ram:LineOne>{{/seller.address.line1}}
+          {{#seller.address.postCode}}<ram:PostcodeCode>{{seller.address.postCode}}</ram:PostcodeCode>{{/seller.address.postCode}}
+          {{#seller.address.city}}<ram:CityName>{{seller.address.city}}</ram:CityName>{{/seller.address.city}}
+          <ram:CountryID>{{seller.address.countryCode}}</ram:CountryID><!-- BT-40 -->
+        </ram:PostalTradeAddress>
+      </ram:SellerTradeParty>
+
+      <!-- Buyer (BT-44..BT-56) -->
+      <ram:BuyerTradeParty>
+        <ram:Name>{{buyer.name}}</ram:Name><!-- BT-44 -->
+        {{#buyer.legalId}}
+        <ram:SpecifiedLegalOrganization>
+          <ram:ID schemeID="{{buyer.legalIdScheme}}">{{buyer.legalId}}</ram:ID><!-- BT-47 -->
+        </ram:SpecifiedLegalOrganization>
+        {{/buyer.legalId}}
+        {{#buyer.vatNumber}}
+        <ram:SpecifiedTaxRegistration>
+          <ram:ID schemeID="VA">{{buyer.vatNumber}}</ram:ID><!-- BT-48 -->
+        </ram:SpecifiedTaxRegistration>
+        {{/buyer.vatNumber}}
+        <ram:PostalTradeAddress>
+          {{#buyer.address.line1}}<ram:LineOne>{{buyer.address.line1}}</ram:LineOne>{{/buyer.address.line1}}
+          {{#buyer.address.postCode}}<ram:PostcodeCode>{{buyer.address.postCode}}</ram:PostcodeCode>{{/buyer.address.postCode}}
+          {{#buyer.address.city}}<ram:CityName>{{buyer.address.city}}</ram:CityName>{{/buyer.address.city}}
+          <ram:CountryID>{{buyer.address.countryCode}}</ram:CountryID><!-- BT-55 -->
+        </ram:PostalTradeAddress>
+      </ram:BuyerTradeParty>
+
+      {{#purchaseOrderRef}}
+      <ram:BuyerOrderReferencedDocument>
+        <ram:IssuerAssignedID>{{purchaseOrderRef}}</ram:IssuerAssignedID><!-- BT-13 -->
+      </ram:BuyerOrderReferencedDocument>
+      {{/purchaseOrderRef}}
+      {{#contractRef}}
+      <ram:ContractReferencedDocument>
+        <ram:IssuerAssignedID>{{contractRef}}</ram:IssuerAssignedID><!-- BT-12 -->
+      </ram:ContractReferencedDocument>
+      {{/contractRef}}
+    </ram:ApplicableHeaderTradeAgreement>
+
+    <!-- ── Delivery ── -->
+    <ram:ApplicableHeaderTradeDelivery/>
+
+    <!-- ── Settlement ── -->
+    <ram:ApplicableHeaderTradeSettlement>
+      <ram:InvoiceCurrencyCode>{{currency}}</ram:InvoiceCurrencyCode><!-- BT-5 -->
+
+      {{#paymentMeans}}
+      <ram:SpecifiedTradeSettlementPaymentMeans>
+        <ram:TypeCode>{{typeCode}}</ram:TypeCode><!-- BT-81 -->
+        {{#iban}}
+        <ram:PayeePartyCreditorFinancialAccount>
+          <ram:IBANID>{{iban}}</ram:IBANID><!-- BT-84 -->
+        </ram:PayeePartyCreditorFinancialAccount>
+        {{/iban}}
+        {{#bic}}
+        <ram:PayeeSpecifiedCreditorFinancialInstitution>
+          <ram:BICID>{{bic}}</ram:BICID><!-- BT-86 -->
+        </ram:PayeeSpecifiedCreditorFinancialInstitution>
+        {{/bic}}
+      </ram:SpecifiedTradeSettlementPaymentMeans>
+      {{/paymentMeans}}
+
+      <!-- Tax breakdowns (BT-116..BT-121) — one block per VAT rate -->
+      {{#taxBreakdowns}}
+      <ram:ApplicableTradeTax>
+        <ram:CalculatedAmount>{{taxAmountFormatted}}</ram:CalculatedAmount><!-- BT-117 -->
+        <ram:TypeCode>VAT</ram:TypeCode>
+        <ram:BasisAmount>{{taxableAmountFormatted}}</ram:BasisAmount><!-- BT-116 -->
+        <ram:CategoryCode>{{categoryCode}}</ram:CategoryCode><!-- BT-118 -->
+        {{#exemptionReason}}<ram:ExemptionReason>{{exemptionReason}}</ram:ExemptionReason>{{/exemptionReason}}
+        <ram:RateApplicablePercent>{{rate}}</ram:RateApplicablePercent><!-- BT-119 -->
+      </ram:ApplicableTradeTax>
+      {{/taxBreakdowns}}
+
+      {{#paymentTerms}}
+      <ram:SpecifiedTradePaymentTerms>
+        <ram:Description>{{paymentTerms}}</ram:Description><!-- BT-20 -->
+        {{#dueDate}}
+        <ram:DueDateDateTime>
+          <udt:DateTimeString format="102">{{dueDateFormatted}}</udt:DateTimeString><!-- BT-9 -->
+        </ram:DueDateDateTime>
+        {{/dueDate}}
+      </ram:SpecifiedTradePaymentTerms>
+      {{/paymentTerms}}
+      {{^paymentTerms}}
+      {{#dueDate}}
+      <ram:SpecifiedTradePaymentTerms>
+        <ram:DueDateDateTime>
+          <udt:DateTimeString format="102">{{dueDateFormatted}}</udt:DateTimeString><!-- BT-9 -->
+        </ram:DueDateDateTime>
+      </ram:SpecifiedTradePaymentTerms>
+      {{/dueDate}}
+      {{/paymentTerms}}
+
+      <!-- Monetary totals (BT-106..BT-115) -->
+      <ram:SpecifiedTradeSettlementHeaderMonetarySummation>
+        <ram:LineTotalAmount>{{sumOfLinesFormatted}}</ram:LineTotalAmount><!-- BT-106 -->
+        <ram:AllowanceTotalAmount>{{totalAllowancesFormatted}}</ram:AllowanceTotalAmount><!-- BT-107 -->
+        <ram:ChargeTotalAmount>{{totalChargesFormatted}}</ram:ChargeTotalAmount><!-- BT-108 -->
+        <ram:TaxBasisTotalAmount>{{taxExclusiveAmountFormatted}}</ram:TaxBasisTotalAmount><!-- BT-109 -->
+        <ram:TaxTotalAmount currencyID="{{currency}}">{{taxAmountTotalFormatted}}</ram:TaxTotalAmount><!-- BT-110 -->
+        <ram:GrandTotalAmount>{{taxInclusiveAmountFormatted}}</ram:GrandTotalAmount><!-- BT-112 -->
+        {{#prepaidAmount}}<ram:TotalPrepaidAmount>{{prepaidAmountFormatted}}</ram:TotalPrepaidAmount>{{/prepaidAmount}}<!-- BT-113 -->
+        <ram:DuePayableAmount>{{duePayableAmountFormatted}}</ram:DuePayableAmount><!-- BT-115 -->
+      </ram:SpecifiedTradeSettlementHeaderMonetarySummation>
+    </ram:ApplicableHeaderTradeSettlement>
+
+  </rsm:SupplyChainTradeTransaction>
+</rsm:CrossIndustryInvoice>
