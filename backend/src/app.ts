@@ -11,6 +11,7 @@ import itemsRouter from './routes/items';
 import healthRouter from './routes/health';
 import suppliersRouter from './routes/suppliers';
 import invoicesRouter from './routes/invoices';
+import einvoicingRouter from './routes/einvoicing';
 import authRouter from './routes/auth';
 import webhooksRouter from './routes/webhooks';
 import aiRouter from './routes/ai';
@@ -32,10 +33,12 @@ app.use(helmet());
 app.use(requestId);
 app.use(requestLogger);
 app.use(requestTimeout(30_000));
-app.use(cors({
-  origin: ['http://localhost:4200', 'http://localhost:4300'],
-  credentials: true, // nécessaire pour que le navigateur envoie les cookies httpOnly
-}));
+app.use(
+  cors({
+    origin: ['http://localhost:4200', 'http://localhost:4300'],
+    credentials: true, // nécessaire pour que le navigateur envoie les cookies httpOnly
+  }),
+);
 app.use(express.json());
 app.use(cookieParser());
 app.use('/img', express.static(path.resolve(__dirname, '../../public/img')));
@@ -69,6 +72,7 @@ app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/collections', collectionsRouter);
 app.use('/api/v1/collections/:collectionId/items', itemsRouter);
 app.use('/api/v1/suppliers', suppliersRouter);
+app.use('/api/v1/invoices', einvoicingRouter); // Factur-X / lifecycle — before generic CRUD
 app.use('/api/v1/invoices', invoicesRouter);
 app.use('/api/v1/webhooks', webhooksRouter);
 app.use('/api/v1/ai', aiRouter);

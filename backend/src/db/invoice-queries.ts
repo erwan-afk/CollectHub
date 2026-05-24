@@ -12,6 +12,7 @@ import {
   ConfidenceMap,
 } from '../types/invoice';
 import { SupplierBody, InvoiceUpdateBody } from '../validation/invoice-schemas';
+import type { LifecycleEvent, LifecycleEventRow, LifecycleStatus } from '../types/einvoice';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -593,6 +594,55 @@ export async function topSuppliers(
     invoiceCount: Number(r.invoice_count),
     totalTtc: Number(r.total_ttc ?? 0),
   }));
+}
+
+// ─── Lifecycle events (Sprint 5 — réforme DGFiP) ─────────────────────────────
+
+function mapLifecycleEvent(row: LifecycleEventRow): LifecycleEvent {
+  return {
+    id: row.id,
+    invoiceId: row.invoice_id,
+    status: row.status,
+    occurredAt: new Date(row.occurred_at).toISOString(),
+    actor: row.actor,
+    comment: row.comment,
+  };
+}
+
+export async function getLifecycleEvents(
+  orgId: number,
+  invoiceId: number,
+): Promise<LifecycleEvent[]> {
+  const { rows } = await pool.query<LifecycleEventRow>(
+    `SELECT le.id, le.invoice_id, le.status, le.occurred_at, le.actor, le.comment
+       FROM invoice_lifecycle_events le
+       JOIN invoices i ON i.id = le.invoice_id
+      WHERE le.invoice_id = $1 AND i.organization_id = $2
+      ORDER BY le.occurred_at ASC, le.id ASC`,
+    [invoiceId, orgId],
+  );
+  return rows.map(mapLifecycleEvent);
+}
+
+export async function createLifecycleEvent(
+  orgId: number,
+  invoiceId: number,
+  event: { status: LifecycleStatus; actor: string; comment: string | null },
+): Promise<LifecycleEvent> {
+  // Verify the invoice belongs to the org (multi-tenant guard)
+  const check = await pool.query<{ id: number }>(
+    `SELECT id FROM invoices WHERE id = $1 AND organization_id = $2`,
+    [invoiceId, orgId],
+  );
+  if (!check.rows.length) throw new Error(`Invoice ${invoiceId} not found for org ${orgId}`);
+
+  const { rows } = await pool.query<LifecycleEventRow>(
+    `INSERT INTO invoice_lifecycle_events (invoice_id, status, actor, comment)
+     VALUES ($1, $2, $3, $4)
+     RETURNING id, invoice_id, status, occurred_at, actor, comment`,
+    [invoiceId, event.status, event.actor, event.comment],
+  );
+  return mapLifecycleEvent(rows[0]);
 }
 
 export async function dashboardSummary(orgId: number): Promise<{
