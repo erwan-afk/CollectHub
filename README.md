@@ -63,6 +63,8 @@ Le **prompt caching Anthropic** (`cache_control: { type: "ephemeral" }`) marque 
 
 Un extracteur alternatif basé sur **Ollama** (Llama 3, Mistral) est branchable via une interface `IInvoiceExtractor` + factory — utile pour les déploiements on-premise sans dépendance à une API externe.
 
+---
+
 ### Architecture asynchrone & temps réel
 
 L'API ne fait jamais de travail lourd dans le cycle requête/réponse. L'upload d'une facture suit ce parcours :
@@ -88,6 +90,8 @@ Les **workers BullMQ** tournent dans un process distinct (`npm run worker`) avec
 
 **Socket.io** est monté sur le `http.Server` natif (pas sur Express directement) pour partager le port. À l'authentification, chaque client rejoint la room `org:{organizationId}` — les workers émettent ensuite sur cette room et l'isolation tenant est garantie sans logique supplémentaire.
 
+---
+
 ### Isolation multi-tenant
 
 Le multi-tenant est appliqué à **trois niveaux** :
@@ -97,6 +101,8 @@ Le multi-tenant est appliqué à **trois niveaux** :
 - **Socket.io rooms** — chaque connexion rejoint `org:{id}` au handshake, et les émissions ciblent toujours une room. Aucun broadcast global.
 
 Cette défense en profondeur évite la classe d'erreurs "TypeScript compile, mais l'isolation est cassée" — le cas le plus fréquent et le plus dangereux dans une plateforme multi-tenant.
+
+---
 
 ### Détection de fraude
 
@@ -110,6 +116,8 @@ Un score de risque 0–100 est calculé à chaque extraction par combinaison de 
 
 Au-delà du seuil (70 par défaut), la facture passe en revue manuelle obligatoire avec mise en évidence des signaux déclenchés.
 
+---
+
 ### Sécurité & authentification
 
 - **JWT access + refresh** — l'access token (15 min) est en mémoire côté front, le refresh token (30 j) en `httpOnly` cookie.
@@ -117,6 +125,8 @@ Au-delà du seuil (70 par défaut), la facture passe en revue manuelle obligatoi
 - **Double hash en base** — les refresh tokens sont stockés en SHA-256 du token brut. Une compromission de la DB ne permet pas de rejouer les sessions.
 - **HMAC-SHA256 sur webhooks sortants** — chaque payload est signé avec un secret par destinataire, header `X-Signature: sha256=<hex>`. Le secret est généré à la création du webhook et renvoyé une seule fois, jamais réexposé.
 - **Rate limiting** par IP + par utilisateur authentifié, **Helmet** pour les headers HTTP, **timeout global** sur toutes les requêtes.
+
+---
 
 ### Factur-X & conformité EN 16931
 
@@ -131,6 +141,8 @@ La génération de factures sortantes produit un fichier **Factur-X** — un PDF
 
 Tests **round-trip** : génération → re-parsing du XML → re-validation → comparaison structurelle. Le script `scripts/check-facturx.ts` valide n'importe quel PDF tiers contre cette pile.
 
+---
+
 ### Agent IA conversationnel
 
 Le chat n'est pas un simple wrapper LLM : c'est une **boucle d'agent** avec accès à des outils :
@@ -141,6 +153,8 @@ Le chat n'est pas un simple wrapper LLM : c'est une **boucle d'agent** avec acc�
 - `rag_search(query)` — recherche sémantique pgvector sur les pièces jointes (les chunks de texte des PDF sont embeddés à l'extraction).
 
 Claude orchestre les appels en **multi-step** (un tool peut en appeler d'autres avant de répondre), la réponse finale est **streamée en SSE** au front. Une suite d'**evals** mesure la qualité : exact-match sur des questions factuelles, LLM-as-judge sur les réponses ouvertes, vérification que l'agent ne fuit jamais de données entre organisations.
+
+---
 
 ### Observabilité
 
