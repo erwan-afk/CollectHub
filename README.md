@@ -17,7 +17,7 @@
 
 ---
 
-## Aperçu
+## 🧭 Aperçu
 
 Plateforme de gestion du cycle de vie complet d'une facture fournisseur, de l'upload au reporting :
 
@@ -32,7 +32,7 @@ Le projet inclut également un **chat IA agentique** capable d'interroger les fa
 
 ---
 
-## Fonctionnalités
+## ✨ Fonctionnalités
 
 | Domaine | Fonctionnalités |
 |---|---|
@@ -50,9 +50,9 @@ Le projet inclut également un **chat IA agentique** capable d'interroger les fa
 
 ---
 
-## Concepts clés
+## 🧠 Concepts clés
 
-### Pipeline d'extraction hybride (regex → LLM)
+### 🔄 Pipeline d'extraction hybride (regex → LLM)
 
 L'extraction des champs d'une facture combine deux étapes en cascade pour optimiser coût et latence :
 
@@ -65,7 +65,7 @@ Un extracteur alternatif basé sur **Ollama** (Llama 3, Mistral) est branchable 
 
 ---
 
-### Architecture asynchrone & temps réel
+### ⚡ Architecture asynchrone & temps réel
 
 L'API ne fait jamais de travail lourd dans le cycle requête/réponse. L'upload d'une facture suit ce parcours :
 
@@ -92,7 +92,7 @@ Les **workers BullMQ** tournent dans un process distinct (`npm run worker`) avec
 
 ---
 
-### Isolation multi-tenant
+### 🏢 Isolation multi-tenant
 
 Le multi-tenant est appliqué à **trois niveaux** :
 
@@ -104,7 +104,7 @@ Cette défense en profondeur évite la classe d'erreurs "TypeScript compile, mai
 
 ---
 
-### Détection de fraude
+### 🚨 Détection de fraude
 
 Un score de risque 0–100 est calculé à chaque extraction par combinaison de plusieurs heuristiques exécutées **en parallèle** via `Promise.allSettled` (un check SQL qui échoue n'annule pas les autres) :
 
@@ -118,7 +118,7 @@ Au-delà du seuil (70 par défaut), la facture passe en revue manuelle obligatoi
 
 ---
 
-### Sécurité & authentification
+### 🔐 Sécurité & authentification
 
 - **JWT access + refresh** — l'access token (15 min) est en mémoire côté front, le refresh token (30 j) en `httpOnly` cookie.
 - **Rotation systématique** — chaque appel à `/auth/refresh` invalide l'ancien refresh token et en émet un nouveau. Si un token volé est utilisé, l'utilisateur légitime verra sa session invalidée au prochain refresh → détection automatique du vol (pattern Auth0 / IETF).
@@ -128,7 +128,7 @@ Au-delà du seuil (70 par défaut), la facture passe en revue manuelle obligatoi
 
 ---
 
-### Factur-X & conformité EN 16931
+### 📄 Factur-X & conformité EN 16931
 
 La génération de factures sortantes produit un fichier **Factur-X** — un PDF/A-3 contenant un XML CII (Cross Industry Invoice) embarqué. Le pipeline :
 
@@ -143,7 +143,7 @@ Tests **round-trip** : génération → re-parsing du XML → re-validation → 
 
 ---
 
-### Agent IA conversationnel
+### 💬 Agent IA conversationnel
 
 Le chat n'est pas un simple wrapper LLM : c'est une **boucle d'agent** avec accès à des outils :
 
@@ -156,13 +156,13 @@ Claude orchestre les appels en **multi-step** (un tool peut en appeler d'autres 
 
 ---
 
-### Observabilité
+### 📊 Observabilité
 
 `AsyncLocalStorage` crée un contexte par requête HTTP qui survit aux `await` et reste isolé entre requêtes concurrentes. Le `requestId` (généré par middleware) est lu par un formatter Winston custom qui l'ajoute à chaque log — **aucun passing manuel** à travers les couches. Un appel `logger.info(...)` au fond d'un service contient automatiquement le `requestId`, le `userId` et le `orgId` de la requête en cours.
 
 ---
 
-## Architecture
+## 🏗️ Architecture
 
 ```
 ┌─────────────────────┐      HTTP REST + WebSocket      ┌──────────────────────┐
@@ -211,7 +211,7 @@ Le backend tourne en **deux processus séparés** : l'API Express (HTTP + WebSoc
 
 ---
 
-## Stack technique
+## 🧰 Stack technique
 
 **Backend** — Node.js · Express 4 · TypeScript strict · PostgreSQL (Neon serverless) · Drizzle ORM + Drizzle Kit · Redis + BullMQ · Socket.io · Zod · Winston · Anthropic SDK (Claude Sonnet/Haiku) · Ollama (LLM local) · pdf-parse · tesseract.js · pdfkit · libxmljs2
 
@@ -221,7 +221,7 @@ Le backend tourne en **deux processus séparés** : l'API Express (HTTP + WebSoc
 
 ---
 
-## Démarrage
+## 🚀 Démarrage
 
 ### Prérequis
 
@@ -263,7 +263,7 @@ Ouvrir **http://localhost:4200/**.
 
 ---
 
-## Commandes
+## ⌨️ Commandes
 
 | Commande | Description |
 |---|---|
@@ -280,7 +280,7 @@ Ouvrir **http://localhost:4200/**.
 
 ---
 
-## API REST (extrait)
+## 🔌 API REST (extrait)
 
 | Méthode | Endpoint | Description |
 |---|---|---|
@@ -295,7 +295,7 @@ Ouvrir **http://localhost:4200/**.
 
 ---
 
-## Documentation
+## 📚 Documentation
 
 L'ensemble de la documentation est dans [`docs/`](./docs/) :
 
@@ -306,6 +306,6 @@ L'ensemble de la documentation est dans [`docs/`](./docs/) :
 
 ---
 
-## Licence
+## 📜 Licence
 
 Projet personnel — usage non commercial.
