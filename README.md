@@ -1,137 +1,113 @@
-<h1 align="center">Invoice Platform — Terrain d'entraînement Node.js / Angular</h1>
+<h1 align="center">Invoice Platform</h1>
 
 <p align="center">
-  <em>Plateforme full-stack de traitement de factures construite comme préparation à un poste <strong>80 % Node.js / 20 % Angular</strong> chez <a href="https://www.getyooz.com/">Yooz</a> (PDP, e-invoicing, IA d'extraction, workflows).</em>
+  <em>Plateforme full-stack de traitement et dématérialisation de factures — OCR, extraction IA, détection de fraude, e-invoicing Factur-X conforme EN 16931.</em>
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Node.js-Express_4-339933?style=flat-square&logo=node.js" alt="Node" />
   <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript" alt="TS strict" />
-  <img src="https://img.shields.io/badge/PostgreSQL-Drizzle-336791?style=flat-square&logo=postgresql" alt="PG" />
+  <img src="https://img.shields.io/badge/PostgreSQL-Drizzle-336791?style=flat-square&logo=postgresql" alt="PostgreSQL" />
   <img src="https://img.shields.io/badge/Redis-BullMQ-DC382D?style=flat-square&logo=redis" alt="BullMQ" />
   <img src="https://img.shields.io/badge/Socket.io-realtime-010101?style=flat-square&logo=socket.io" alt="Socket.io" />
   <img src="https://img.shields.io/badge/Anthropic-Claude-D97757?style=flat-square&logo=anthropic" alt="Claude" />
   <img src="https://img.shields.io/badge/Angular-21-DD0031?style=flat-square&logo=angular" alt="Angular 21" />
-  <img src="https://img.shields.io/badge/Vitest-tests-6E9F18?style=flat-square&logo=vitest" alt="Vitest" />
   <img src="https://img.shields.io/badge/Factur--X-EN_16931-0F62FE?style=flat-square" alt="Factur-X" />
 </p>
 
 ---
 
-## 🎯 Pourquoi ce projet
+## Aperçu
 
-Ce repo est un **terrain d'entraînement orienté entretien** : chaque sprint implémente une brique typique d'un éditeur fintech / PDP (Plateforme de Dématérialisation Partenaire). L'objectif n'est pas de livrer un produit, mais de **construire et savoir défendre** des choix d'architecture : auth, async, IA, e-invoicing réglementaire.
+Plateforme de gestion du cycle de vie complet d'une facture fournisseur, de l'upload au reporting :
 
-Principes appliqués :
+1. **Upload** — dépôt PDF, file BullMQ, réponse `202 Accepted` immédiate.
+2. **Extraction** — pipeline hybride : OCR + regex rapide en première passe, fallback Claude pour les champs incertains.
+3. **Contrôle** — détection de fraude (changement d'IBAN, SIREN inconnu, z-score sur montants).
+4. **Validation** — revue humaine côté front, mise à jour temps réel via WebSocket.
+5. **Émission** — génération de la facture sortante au format **Factur-X** (PDF/A-3 + XML CII), conforme EN 16931 / profil PDP.
+6. **Distribution** — webhooks signés HMAC vers les systèmes tiers (comptabilité, ERP).
 
-- **Build-from-scratch d'abord, lib éprouvée ensuite** (mini state-machine maison avant XState, mini queue avant BullMQ…)
-- **ADR systématiques** dans [`docs/adr/`](./docs/adr/) — 12 décisions argumentées, alternatives écartées, conséquences
-- **`LEARNINGS.md`** vivant — 5 à 10 lignes par sprint sur les pièges rencontrés (matière à STAR en entretien)
-- **TypeScript strict des deux côtés**, Zod sur toutes les entrées, multi-tenant enforced **à la signature des fonctions**
+Le projet inclut également un **chat IA agentique** capable d'interroger les factures (tool use multi-step, RAG sur les pièces jointes, réponse en streaming SSE).
 
-📚 **Entrée recruteur complète** → [`docs/README.md`](./docs/README.md)
+## Fonctionnalités
 
----
-
-## 🧱 Ce qui a été construit
-
-| Domaine | Implémenté |
+| Domaine | Fonctionnalités |
 |---|---|
-| **Auth & sécurité** | JWT access + refresh, rotation des refresh tokens, double hash SHA-256, HMAC-SHA256 sur webhooks (pattern GitHub/Stripe) |
-| **Multi-tenant** | Isolation par `organization_id` dès la signature des queries (`orgId` 1ᵉʳ paramètre), rooms Socket.io `org:{id}` |
-| **Async & temps réel** | BullMQ + Redis, workers séparés (OCR / email / webhooks / IA), dead-letter queue, Socket.io sur HTTP server, `202 Accepted` + push WS |
-| **Extraction IA** | Pipeline hybride **regex → LLM** (≈ 60 % court-circuit gratuit), Claude tool use (structured output garanti), **prompt caching > 80 % hit rate** (coût ÷ 5) |
-| **Agent IA** | Tool use multi-step, RAG pgvector, streaming SSE, evals automatisées |
-| **Détection de fraude** | Heuristiques IBAN/SIREN + z-score sur montants, `Promise.allSettled` pour tolérance partielle |
-| **E-invoicing Factur-X** | PDF/A-3 + XML CII conforme EN 16931, validation XSD + Schematron manuscrit, tests round-trip 8/8 |
-| **Frontend Angular 21** | Standalone components, signals, control flow `@if`/`@for`, Material 3, Tailwind 4, timeline cycle de vie facture |
-| **Observabilité** | Winston structuré + `AsyncLocalStorage` pour propager `requestId` à travers les `await` sans passing manuel |
-| **Qualité** | Vitest des deux côtés, mocks `vi.hoisted()`, migrations Drizzle versionnées |
+| **Authentification** | Inscription / login, JWT access + refresh, rotation des refresh tokens, rôles (`admin`, `member`) |
+| **Multi-tenant** | Organisations isolées, scope automatique des requêtes au niveau du middleware, rooms WebSocket par tenant |
+| **Factures entrantes** | Upload PDF, traitement asynchrone (BullMQ), OCR (Tesseract.js + pdf-parse), extraction de champs (montants, TVA, SIREN, IBAN, dates) |
+| **Extraction IA** | Pipeline hybride regex → LLM, prompt caching Anthropic, structured output via tool use, fallback Ollama local |
+| **Détection de fraude** | Heuristiques IBAN/SIREN, z-score statistique sur historique fournisseur, score 0–100 |
+| **Workflow** | State machine 5 états (`PROCESSING` → `EXTRACTED` → `REVIEWING` → `APPROVED` / `REJECTED`), historique d'événements |
+| **Temps réel** | Socket.io, push des changements de statut au front, indicateur de progression d'upload |
+| **E-invoicing** | Génération Factur-X (PDF/A-3 + XML CII), validation XSD + Schematron, profils EN 16931, mapping UBL Peppol |
+| **Intégrations** | Webhooks sortants signés HMAC-SHA256 (pattern GitHub/Stripe), DLQ avec replay manuel |
+| **Chat agentique** | Conversation sur le corpus de factures, tool use multi-step, RAG pgvector, streaming SSE, evals automatisées |
+| **Observabilité** | Logs structurés (Winston) avec `requestId` propagé via `AsyncLocalStorage`, Bull Board, healthchecks |
 
----
-
-## 🗺️ Roadmap — 5 sprints
-
-| Sprint | Thème | Compétences | Statut |
-|---|---|---|---|
-| [1](./docs/roadmap/sprint-1-fondations.md) | Fondations | Auth, multi-tenant, Drizzle, Winston, tests | ✅ |
-| [2](./docs/roadmap/sprint-2-async-pipeline.md) | Pipeline asynchrone | BullMQ, Redis, Socket.io, webhooks HMAC | ✅ |
-| [3](./docs/roadmap/sprint-3-ai-extraction.md) | IA d'extraction | Claude tool use, prompt caching, fraude | ✅ |
-| [4](./docs/roadmap/sprint-4-agentic-ai.md) | Agent IA conversationnel | Multi-step tool use, RAG pgvector, SSE | ✅ |
-| [5](./docs/roadmap/sprint-5-facturx.md) | Factur-X / e-invoicing | PDF/A-3, XML CII, EN 16931, UBL Peppol | ✅ |
-
----
-
-## 💡 Chiffres argumentables en entretien
-
-- **Prompt caching Anthropic** : > 80 % hit rate → **coût par facture passé de ~$0.004 à ~$0.001** (÷ 5)
-- **Pipeline hybride regex/LLM** : ~60 % des factures traitées **sans appel LLM** → économie 50-70 %
-- **Tests Factur-X round-trip** : 8/8 (génération → parse → validation EN 16931 → re-génération identique)
-- **Multi-tenant** : isolation enforced **au niveau type**, pas seulement WHERE — impossible d'oublier `orgId`
-
-Détail des anecdotes STAR dans [`docs/LEARNINGS.md`](./docs/LEARNINGS.md).
-
----
-
-## 🏗️ Architecture
+## Architecture
 
 ```
-Angular 21 (4200)
-    ↕ HTTP REST + WebSocket
-Express 4 + TypeScript (3000)
-    ↕ SQL (Drizzle)
-PostgreSQL (Neon serverless, 5432)
-    ↕ jobs
-Redis / BullMQ (6379)
-    ↕
-Workers séparés : OCR · Email · Webhooks · IA
+┌─────────────────────┐      HTTP REST + WebSocket      ┌──────────────────────┐
+│   Angular 21 (4200) │ ──────────────────────────────► │  Express 4 (3000)    │
+│   Material 3 + TW4  │ ◄────────── push WS ──────────  │  Socket.io           │
+└─────────────────────┘                                 └──────────┬───────────┘
+                                                                   │ Drizzle ORM
+                                                                   ▼
+                                                        ┌──────────────────────┐
+                              jobs                      │  PostgreSQL (Neon)   │
+        ┌──────────────────────────────────────────┐    │  + pgvector          │
+        │                                          │    └──────────────────────┘
+        ▼                                          │
+┌─────────────────────┐    ┌─────────────────────┐ │
+│  Workers BullMQ     │◄───┤  Redis (6379)       │◄┘
+│  ─ OCR              │    └─────────────────────┘
+│  ─ AI extraction    │
+│  ─ Webhooks signés  │
+│  ─ Email / DLQ      │
+└─────────────────────┘
 ```
 
-Le backend tourne en **deux processus** :
+Le backend tourne en **deux processus séparés** : l'API Express (HTTP + WebSocket) et les workers BullMQ qui consomment les queues en parallèle avec une concurrence configurable.
 
-```bash
-cd backend && npm run dev       # API Express + Socket.io
-cd backend && npm run worker    # Consommateurs BullMQ
-```
-
-Structure :
+### Structure du repo
 
 ```
 .
-├── src/                 # Frontend Angular 21
+├── src/                          # Frontend Angular 21
+│   └── app/{components,pages,services,models}
 ├── backend/src/
-│   ├── routes/          # 1 fichier = 1 domaine (auth, invoices, ai, einvoicing…)
-│   ├── services/        # Logique métier (jamais dans les routes)
-│   ├── db/              # Queries SQL (jamais inline dans une route)
-│   ├── middleware/      # 8 middlewares globaux
-│   └── workers/         # Processus BullMQ séparés
+│   ├── routes/                   # 1 fichier = 1 domaine HTTP
+│   ├── services/                 # Logique métier
+│   ├── db/                       # Schémas + queries Drizzle
+│   ├── workers/                  # Consommateurs BullMQ
+│   ├── middleware/               # Auth, rate-limit, logging, errors…
+│   └── validation/               # Schémas Zod
 ├── docs/
-│   ├── guides/          # 5 guides d'onboarding détaillés
-│   ├── roadmap/         # Spec sprint par sprint
-│   ├── adr/             # 12 décisions techniques argumentées
-│   └── LEARNINGS.md     # Anecdotes STAR
-└── scripts/             # Seed, check-facturx, round-trip…
+│   ├── README.md                 # Index documentation
+│   ├── guides/                   # Onboarding détaillé
+│   ├── roadmap/                  # Spec sprint par sprint
+│   └── adr/                      # Décisions techniques argumentées
+├── scripts/                      # Seed, check-facturx, round-trip…
+└── docker-compose.yml            # Postgres + pgAdmin
 ```
 
----
+## Stack technique
 
-## 🚀 Stack technique
+**Backend** — Node.js · Express 4 · TypeScript strict · PostgreSQL (Neon serverless) · Drizzle ORM + Drizzle Kit · Redis + BullMQ · Socket.io · Zod · Winston · Anthropic SDK (Claude Sonnet/Haiku) · Ollama (LLM local) · pdf-parse · tesseract.js · pdfkit · libxmljs2
 
-**Backend** — Node.js · Express 4 · TypeScript strict · PostgreSQL (Neon) · Drizzle ORM · Redis + BullMQ · Socket.io · Zod · Winston · Anthropic SDK (Claude) · pdf-parse · tesseract.js · pdfkit · libxmljs2 · Vitest
+**Frontend** — Angular 21 (standalone components · signals · control flow `@if`/`@for`) · Angular Material 3 · Tailwind CSS 4 · RxJS
 
-**Frontend** — Angular 21 (standalone + signals + control flow) · Angular Material 3 · Tailwind CSS 4 · RxJS · Vitest
+**Qualité & ops** — Vitest (back + front) · ESLint + Prettier · Bull Board · Docker Compose · migrations Drizzle versionnées
 
-**Outillage** — Drizzle Kit (migrations) · Bull Board · Docker Compose (Postgres + pgAdmin) · ESLint + Prettier
-
----
-
-## 📦 Démarrage
+## Démarrage
 
 ### Prérequis
 
 - Node.js ≥ 18
-- Docker (Postgres + Redis locaux) ou un compte [Neon](https://neon.tech/)
-- Une clé API Anthropic (sprint 3+) — optionnel : Ollama local
+- Docker (Postgres + Redis locaux) **ou** un compte [Neon](https://neon.tech/) + une instance Redis
+- Une clé API Anthropic (optionnel — l'extracteur Ollama local peut prendre le relais)
 
 ### Installation
 
@@ -141,12 +117,12 @@ npm install
 cd backend && npm install && cd ..
 
 # Infra locale
-docker compose up -d            # Postgres + pgAdmin (+ Redis)
+docker compose up -d
 
-# .env (racine et backend/.env) — voir backend/.env.example
-cp backend/.env.example backend/.env
+# Configuration
+cp backend/.env.example backend/.env   # éditer DATABASE_URL, JWT_SECRET, ANTHROPIC_API_KEY…
 
-# Migrations + seed
+# Schéma + données de démo
 cd backend && npm run db:migrate && npm run db:seed && cd ..
 ```
 
@@ -159,45 +135,49 @@ cd backend && npm run dev
 # Terminal 2 — Workers BullMQ
 cd backend && npm run worker
 
-# Terminal 3 — Front
+# Terminal 3 — Frontend
 npm start
 ```
 
-→ Ouvrir **http://localhost:4200/**
+Ouvrir **http://localhost:4200/**.
 
----
-
-## 🛠️ Commandes utiles
+## Commandes
 
 | Commande | Description |
 |---|---|
 | `npm start` | Dev server Angular |
-| `npm run build` | Build front production |
+| `npm run build` | Build production front |
 | `npm test` | Tests Vitest front |
 | `cd backend && npm run dev` | API Express + Socket.io |
 | `cd backend && npm run worker` | Workers BullMQ |
 | `cd backend && npm test` | Tests Vitest backend |
 | `cd backend && npm run db:migrate` | Applique les migrations Drizzle |
-| `cd backend && npm run db:seed` | Seed de démo |
-| `node scripts/check-facturx.ts <file.pdf>` | Validation Factur-X EN 16931 |
-| `docker compose up -d` | Postgres + pgAdmin |
+| `cd backend && npm run db:seed` | Seed des données de démo |
+| `node scripts/check-facturx.ts <file.pdf>` | Valide un Factur-X (XSD + Schematron + EN 16931) |
+| `docker compose up -d` | Démarre Postgres + pgAdmin |
 
----
+## API REST (extrait)
 
-## 📚 Documentation
+| Méthode | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/v1/auth/register` · `/login` · `/refresh` | Auth JWT |
+| `GET` `POST` | `/api/v1/invoices` | Liste / upload de factures |
+| `GET` | `/api/v1/invoices/:id` | Détail + historique d'événements |
+| `POST` | `/api/v1/invoices/:id/approve` · `/reject` | Workflow de validation |
+| `POST` | `/api/v1/einvoicing/factur-x` | Génération Factur-X (PDF/A-3 + XML CII) |
+| `POST` | `/api/v1/ai/chat` | Chat agentique (SSE streaming) |
+| `GET` `POST` | `/api/v1/webhooks` | Endpoints sortants signés HMAC |
+| `GET` | `/health` · `/admin/queues` | Healthcheck + Bull Board (rôle admin) |
 
-Tout est dans [`docs/`](./docs/) :
+## Documentation
 
-- **[docs/README.md](./docs/README.md)** — entrée recruteur (TL;DR + parcours suggéré)
-- **[docs/guides/](./docs/guides/)** — 5 guides détaillés (overview, backend, features, frontend, data flows, glossaire)
-- **[docs/roadmap/](./docs/roadmap/)** — spec sprint par sprint
-- **[docs/adr/](./docs/adr/)** — 12 décisions techniques argumentées
-- **[docs/LEARNINGS.md](./docs/LEARNINGS.md)** — pièges rencontrés + solutions (matière STAR)
+L'ensemble de la documentation est dans [`docs/`](./docs/) :
 
----
+- **[docs/README.md](./docs/README.md)** — index général
+- **[docs/guides/](./docs/guides/)** — onboarding (overview, backend, features, frontend, data flows, glossaire)
+- **[docs/roadmap/](./docs/roadmap/)** — spec par itération
+- **[docs/adr/](./docs/adr/)** — décisions techniques (Drizzle, JWT, BullMQ, Schematron, Factur-X…)
 
-## 📄 Licence
+## Licence
 
-Projet personnel d'entraînement — usage non commercial.
-
-<p align="center"><em>Stack & décisions documentées sprint par sprint pour servir de support d'entretien.</em></p>
+Projet personnel — usage non commercial.
