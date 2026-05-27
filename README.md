@@ -30,6 +30,8 @@ Plateforme de gestion du cycle de vie complet d'une facture fournisseur, de l'up
 
 Le projet inclut également un **chat IA agentique** capable d'interroger les factures (tool use multi-step, RAG sur les pièces jointes, réponse en streaming SSE).
 
+---
+
 ## Fonctionnalités
 
 | Domaine | Fonctionnalités |
@@ -45,6 +47,8 @@ Le projet inclut également un **chat IA agentique** capable d'interroger les fa
 | **Intégrations** | Webhooks sortants signés HMAC-SHA256 (pattern GitHub/Stripe), DLQ avec replay manuel |
 | **Chat agentique** | Conversation sur le corpus de factures, tool use multi-step, RAG pgvector, streaming SSE, evals automatisées |
 | **Observabilité** | Logs structurés (Winston) avec `requestId` propagé via `AsyncLocalStorage`, Bull Board, healthchecks |
+
+---
 
 ## Concepts clés
 
@@ -142,6 +146,8 @@ Claude orchestre les appels en **multi-step** (un tool peut en appeler d'autres 
 
 `AsyncLocalStorage` crée un contexte par requête HTTP qui survit aux `await` et reste isolé entre requêtes concurrentes. Le `requestId` (généré par middleware) est lu par un formatter Winston custom qui l'ajoute à chaque log — **aucun passing manuel** à travers les couches. Un appel `logger.info(...)` au fond d'un service contient automatiquement le `requestId`, le `userId` et le `orgId` de la requête en cours.
 
+---
+
 ## Architecture
 
 ```
@@ -189,6 +195,8 @@ Le backend tourne en **deux processus séparés** : l'API Express (HTTP + WebSoc
 └── docker-compose.yml            # Postgres + pgAdmin
 ```
 
+---
+
 ## Stack technique
 
 **Backend** — Node.js · Express 4 · TypeScript strict · PostgreSQL (Neon serverless) · Drizzle ORM + Drizzle Kit · Redis + BullMQ · Socket.io · Zod · Winston · Anthropic SDK (Claude Sonnet/Haiku) · Ollama (LLM local) · pdf-parse · tesseract.js · pdfkit · libxmljs2
@@ -196,6 +204,8 @@ Le backend tourne en **deux processus séparés** : l'API Express (HTTP + WebSoc
 **Frontend** — Angular 21 (standalone components · signals · control flow `@if`/`@for`) · Angular Material 3 · Tailwind CSS 4 · RxJS
 
 **Qualité & ops** — Vitest (back + front) · ESLint + Prettier · Bull Board · Docker Compose · migrations Drizzle versionnées
+
+---
 
 ## Démarrage
 
@@ -237,6 +247,8 @@ npm start
 
 Ouvrir **http://localhost:4200/**.
 
+---
+
 ## Commandes
 
 | Commande | Description |
@@ -252,6 +264,8 @@ Ouvrir **http://localhost:4200/**.
 | `node scripts/check-facturx.ts <file.pdf>` | Valide un Factur-X (XSD + Schematron + EN 16931) |
 | `docker compose up -d` | Démarre Postgres + pgAdmin |
 
+---
+
 ## API REST (extrait)
 
 | Méthode | Endpoint | Description |
@@ -265,6 +279,8 @@ Ouvrir **http://localhost:4200/**.
 | `GET` `POST` | `/api/v1/webhooks` | Endpoints sortants signés HMAC |
 | `GET` | `/health` · `/admin/queues` | Healthcheck + Bull Board (rôle admin) |
 
+---
+
 ## Documentation
 
 L'ensemble de la documentation est dans [`docs/`](./docs/) :
@@ -273,6 +289,8 @@ L'ensemble de la documentation est dans [`docs/`](./docs/) :
 - **[docs/guides/](./docs/guides/)** — onboarding (overview, backend, features, frontend, data flows, glossaire)
 - **[docs/roadmap/](./docs/roadmap/)** — spec par itération
 - **[docs/adr/](./docs/adr/)** — décisions techniques (Drizzle, JWT, BullMQ, Schematron, Factur-X…)
+
+---
 
 ## Licence
 
