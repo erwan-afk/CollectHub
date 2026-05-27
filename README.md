@@ -1,249 +1,203 @@
-
-<h1 align="center">
-  📦 Collection Manager
-</h1>
+<h1 align="center">Invoice Platform — Terrain d'entraînement Node.js / Angular</h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Angular-21-red?style=flat-square&logo=angular" alt="Angular 21" />
-  <img src="https://img.shields.io/badge/Material_3-M3-purple?style=flat-square&logo=material-design" alt="Material 3" />
-  <img src="https://img.shields.io/badge/Tailwind-v4-38B2AC?style=flat-square&logo=tailwind-css" alt="Tailwind v4" />
-  <img src="https://img.shields.io/badge/TypeScript-5.9-blue?style=flat-square&logo=typescript" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Node.js-Express-green?style=flat-square&logo=express" alt="Express" />
-  <img src="https://img.shields.io/badge/DB-PostgreSQL-336791?style=flat-square&logo=postgresql" alt="PostgreSQL" />
-  <img src="https://img.shields.io/badge/Docker-🐳-2496ED?style=flat-square&logo=docker" alt="Docker" />
-  <img src="https://img.shields.io/badge/PWA-ready-5A0FC8?style=flat-square&logo=pwa" alt="PWA" />
+  <em>Plateforme full-stack de traitement de factures construite comme préparation à un poste <strong>80 % Node.js / 20 % Angular</strong> chez <a href="https://www.getyooz.com/">Yooz</a> (PDP, e-invoicing, IA d'extraction, workflows).</em>
 </p>
 
 <p align="center">
-  Une application full-stack de gestion de collections d'objets (pièces, timbres, figurines, cartes…)<br/>
-  construite avec <strong>Angular 21</strong>, <strong>Material Design 3</strong> et un backend <strong>Express + PostgreSQL</strong>.
+  <img src="https://img.shields.io/badge/Node.js-Express_4-339933?style=flat-square&logo=node.js" alt="Node" />
+  <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript" alt="TS strict" />
+  <img src="https://img.shields.io/badge/PostgreSQL-Drizzle-336791?style=flat-square&logo=postgresql" alt="PG" />
+  <img src="https://img.shields.io/badge/Redis-BullMQ-DC382D?style=flat-square&logo=redis" alt="BullMQ" />
+  <img src="https://img.shields.io/badge/Socket.io-realtime-010101?style=flat-square&logo=socket.io" alt="Socket.io" />
+  <img src="https://img.shields.io/badge/Anthropic-Claude-D97757?style=flat-square&logo=anthropic" alt="Claude" />
+  <img src="https://img.shields.io/badge/Angular-21-DD0031?style=flat-square&logo=angular" alt="Angular 21" />
+  <img src="https://img.shields.io/badge/Vitest-tests-6E9F18?style=flat-square&logo=vitest" alt="Vitest" />
+  <img src="https://img.shields.io/badge/Factur--X-EN_16931-0F62FE?style=flat-square" alt="Factur-X" />
 </p>
 
 ---
 
-## ✨ Fonctionnalités
+## 🎯 Pourquoi ce projet
 
-| Fonctionnalité | Détail |
+Ce repo est un **terrain d'entraînement orienté entretien** : chaque sprint implémente une brique typique d'un éditeur fintech / PDP (Plateforme de Dématérialisation Partenaire). L'objectif n'est pas de livrer un produit, mais de **construire et savoir défendre** des choix d'architecture : auth, async, IA, e-invoicing réglementaire.
+
+Principes appliqués :
+
+- **Build-from-scratch d'abord, lib éprouvée ensuite** (mini state-machine maison avant XState, mini queue avant BullMQ…)
+- **ADR systématiques** dans [`docs/adr/`](./docs/adr/) — 12 décisions argumentées, alternatives écartées, conséquences
+- **`LEARNINGS.md`** vivant — 5 à 10 lignes par sprint sur les pièges rencontrés (matière à STAR en entretien)
+- **TypeScript strict des deux côtés**, Zod sur toutes les entrées, multi-tenant enforced **à la signature des fonctions**
+
+📚 **Entrée recruteur complète** → [`docs/README.md`](./docs/README.md)
+
+---
+
+## 🧱 Ce qui a été construit
+
+| Domaine | Implémenté |
 |---|---|
-| 📋 **Collections** | Création, édition, suppression de collections |
-| 🃏 **Items** | Ajout d'objets avec nom, description, rareté, prix et image |
-| 🔍 **Recherche & filtre** | Recherche textuelle + filtrage par rareté |
-| ⬆️⬇️ **Tri** | Tri par nom, rareté ou prix (ascendant / descendant) |
-| 🖼️ **Upload d'images** | Glisser-déposer ou sélection de fichier |
-| 🌓 **Dark mode** | Mode sombre automatique (Material You) |
-| 📱 **Responsive** | Design mobile-first |
-| ⚡ **Zoneless** | Performances optimales avec le mode zoneless + `OnPush` |
-| 📴 **PWA** | Progressive Web App avec support hors-ligne |
-| 🗄️ **API REST** | Backend Express typé avec PostgreSQL |
+| **Auth & sécurité** | JWT access + refresh, rotation des refresh tokens, double hash SHA-256, HMAC-SHA256 sur webhooks (pattern GitHub/Stripe) |
+| **Multi-tenant** | Isolation par `organization_id` dès la signature des queries (`orgId` 1ᵉʳ paramètre), rooms Socket.io `org:{id}` |
+| **Async & temps réel** | BullMQ + Redis, workers séparés (OCR / email / webhooks / IA), dead-letter queue, Socket.io sur HTTP server, `202 Accepted` + push WS |
+| **Extraction IA** | Pipeline hybride **regex → LLM** (≈ 60 % court-circuit gratuit), Claude tool use (structured output garanti), **prompt caching > 80 % hit rate** (coût ÷ 5) |
+| **Agent IA** | Tool use multi-step, RAG pgvector, streaming SSE, evals automatisées |
+| **Détection de fraude** | Heuristiques IBAN/SIREN + z-score sur montants, `Promise.allSettled` pour tolérance partielle |
+| **E-invoicing Factur-X** | PDF/A-3 + XML CII conforme EN 16931, validation XSD + Schematron manuscrit, tests round-trip 8/8 |
+| **Frontend Angular 21** | Standalone components, signals, control flow `@if`/`@for`, Material 3, Tailwind 4, timeline cycle de vie facture |
+| **Observabilité** | Winston structuré + `AsyncLocalStorage` pour propager `requestId` à travers les `await` sans passing manuel |
+| **Qualité** | Vitest des deux côtés, mocks `vi.hoisted()`, migrations Drizzle versionnées |
+
+---
+
+## 🗺️ Roadmap — 5 sprints
+
+| Sprint | Thème | Compétences | Statut |
+|---|---|---|---|
+| [1](./docs/roadmap/sprint-1-fondations.md) | Fondations | Auth, multi-tenant, Drizzle, Winston, tests | ✅ |
+| [2](./docs/roadmap/sprint-2-async-pipeline.md) | Pipeline asynchrone | BullMQ, Redis, Socket.io, webhooks HMAC | ✅ |
+| [3](./docs/roadmap/sprint-3-ai-extraction.md) | IA d'extraction | Claude tool use, prompt caching, fraude | ✅ |
+| [4](./docs/roadmap/sprint-4-agentic-ai.md) | Agent IA conversationnel | Multi-step tool use, RAG pgvector, SSE | ✅ |
+| [5](./docs/roadmap/sprint-5-facturx.md) | Factur-X / e-invoicing | PDF/A-3, XML CII, EN 16931, UBL Peppol | ✅ |
+
+---
+
+## 💡 Chiffres argumentables en entretien
+
+- **Prompt caching Anthropic** : > 80 % hit rate → **coût par facture passé de ~$0.004 à ~$0.001** (÷ 5)
+- **Pipeline hybride regex/LLM** : ~60 % des factures traitées **sans appel LLM** → économie 50-70 %
+- **Tests Factur-X round-trip** : 8/8 (génération → parse → validation EN 16931 → re-génération identique)
+- **Multi-tenant** : isolation enforced **au niveau type**, pas seulement WHERE — impossible d'oublier `orgId`
+
+Détail des anecdotes STAR dans [`docs/LEARNINGS.md`](./docs/LEARNINGS.md).
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-angular-project/
-├── src/                            # Frontend Angular 21
-│   ├── app/
-│   │   ├── components/             # Composants réutilisables
-│   │   │   ├── collection-item-card/   → Carte d'affichage d'un item
-│   │   │   ├── file-upload/            → Composant d'upload par drag & drop
-│   │   │   └── search-bar/             → Barre de recherche + filtre
-│   │   ├── models/                 # Modèles de données
-│   │   │   ├── collection.ts           → Modèle Collection
-│   │   │   └── collection-item.ts      → Modèle CollectionItem + Raretés
-│   │   ├── pages/                  # Pages (lazy-loaded)
-│   │   │   ├── collection-detail/      → Vue liste d'une collection
-│   │   │   ├── collection-item-detail/ → Vue détail / édition d'un item
-│   │   │   └── not-found/              → Page 404
-│   │   └── services/               # Services métier
-│   │       └── collection-service.ts   → Service CRUD (HTTP → API)
-│   ├── material-theme.scss         # Thème Material 3 personnalisé
-│   └── styles.css                  # Styles globaux + Tailwind v4
-│
-├── server/                         # Serveur API léger (Neon serverless)
-│   └── index.ts                    # API REST avec Neon DB
-│
-├── backend/                        # Backend Express complet
-│   └── src/
-│       ├── routes/                 # Routes modulaires
-│       │   ├── collections.ts          → CRUD collections
-│       │   ├── items.ts                → CRUD items
-│       │   └── health.ts               → Healthcheck
-│       ├── middleware/             # Middlewares
-│       │   ├── rateLimiter.ts          → Rate limiting
-│       │   ├── timeout.ts              → Timeout des requêtes
-│       │   ├── requestLogger.ts        → Logging HTTP
-│       │   └── errorHandler.ts         → Gestion globale des erreurs
-│       ├── validation/             # Validation Zod
-│       └── db/                     # Connexion & requêtes DB
-│
-├── scripts/                        # Scripts utilitaires
-│   ├── seed-neon.ts                # Seed de la DB Neon
-│   ├── seed-neon.sql               # Script SQL de création de tables
-│   ├── check-images.ts             # Vérification des images
-│   └── update-images.ts            # Mise à jour des images
-│
-├── docker-compose.yml              # PostgreSQL + pgAdmin (dev local)
-└── public/                         # Assets statiques (images)
+Angular 21 (4200)
+    ↕ HTTP REST + WebSocket
+Express 4 + TypeScript (3000)
+    ↕ SQL (Drizzle)
+PostgreSQL (Neon serverless, 5432)
+    ↕ jobs
+Redis / BullMQ (6379)
+    ↕
+Workers séparés : OCR · Email · Webhooks · IA
+```
+
+Le backend tourne en **deux processus** :
+
+```bash
+cd backend && npm run dev       # API Express + Socket.io
+cd backend && npm run worker    # Consommateurs BullMQ
+```
+
+Structure :
+
+```
+.
+├── src/                 # Frontend Angular 21
+├── backend/src/
+│   ├── routes/          # 1 fichier = 1 domaine (auth, invoices, ai, einvoicing…)
+│   ├── services/        # Logique métier (jamais dans les routes)
+│   ├── db/              # Queries SQL (jamais inline dans une route)
+│   ├── middleware/      # 8 middlewares globaux
+│   └── workers/         # Processus BullMQ séparés
+├── docs/
+│   ├── guides/          # 5 guides d'onboarding détaillés
+│   ├── roadmap/         # Spec sprint par sprint
+│   ├── adr/             # 12 décisions techniques argumentées
+│   └── LEARNINGS.md     # Anecdotes STAR
+└── scripts/             # Seed, check-facturx, round-trip…
 ```
 
 ---
 
 ## 🚀 Stack technique
 
-### Frontend
+**Backend** — Node.js · Express 4 · TypeScript strict · PostgreSQL (Neon) · Drizzle ORM · Redis + BullMQ · Socket.io · Zod · Winston · Anthropic SDK (Claude) · pdf-parse · tesseract.js · pdfkit · libxmljs2 · Vitest
 
-| Technologie | Usage |
-|---|---|
-| **[Angular 21](https://angular.dev/)** | Framework (standalone components, signals) |
-| **[Angular Material 3](https://material.angular.io/)** | Design system Material You |
-| **[Tailwind CSS v4](https://tailwindcss.com/)** | Styles utilitaires |
-| **[Vitest](https://vitest.dev/)** | Tests unitaires |
-| **[ESLint](https://eslint.org/) + [Prettier](https://prettier.io/)** | Linting & formatage |
+**Frontend** — Angular 21 (standalone + signals + control flow) · Angular Material 3 · Tailwind CSS 4 · RxJS · Vitest
 
-### Backend
-
-| Technologie | Usage |
-|---|---|
-| **[Express 5](https://expressjs.com/)** | Serveur HTTP REST |
-| **[PostgreSQL](https://www.postgresql.org/)** | Base de données relationnelle |
-| **[Neon](https://neon.tech/)** | PostgreSQL serverless (cloud) |
-| **[Zod](https://zod.dev/)** | Validation des données |
-| **[Helmet](https://helmetjs.github.io/)** | Sécurité HTTP |
-| **[Winston](https://github.com/winstonjs/winston)** | Logging |
+**Outillage** — Drizzle Kit (migrations) · Bull Board · Docker Compose (Postgres + pgAdmin) · ESLint + Prettier
 
 ---
 
-## 📦 Installation
+## 📦 Démarrage
 
 ### Prérequis
 
-- **Node.js** ≥ 18
-- **Docker** (optionnel, pour la DB locale)
-- Un compte **[Neon](https://neon.tech/)** (optionnel, pour la DB cloud)
+- Node.js ≥ 18
+- Docker (Postgres + Redis locaux) ou un compte [Neon](https://neon.tech/)
+- Une clé API Anthropic (sprint 3+) — optionnel : Ollama local
 
-### 1. Cloner et installer les dépendances
+### Installation
 
 ```bash
-# Frontend
+# Dépendances
 npm install
-
-# Backend
 cd backend && npm install && cd ..
+
+# Infra locale
+docker compose up -d            # Postgres + pgAdmin (+ Redis)
+
+# .env (racine et backend/.env) — voir backend/.env.example
+cp backend/.env.example backend/.env
+
+# Migrations + seed
+cd backend && npm run db:migrate && npm run db:seed && cd ..
 ```
 
-### 2. Lancer la base de données locale (Docker)
+### Lancement
 
 ```bash
-docker compose up -d
-```
+# Terminal 1 — API
+cd backend && npm run dev
 
-Cela démarre :
-- **PostgreSQL 16** sur `localhost:5432`
-- **pgAdmin 4** sur http://localhost:5050
+# Terminal 2 — Workers BullMQ
+cd backend && npm run worker
 
-### 3. Configurer les variables d'environnement
-
-Créer un fichier `.env` à la racine :
-
-```env
-# Base de données (locale ou Neon)
-DATABASE_URL=postgresql://user:password@localhost:5432/collections
-
-# Docker
-DB_USER=user
-DB_PASSWORD=password
-DB_NAME=collections
-```
-
-### 4. Initialiser la base de données
-
-```bash
-npm run db:seed
-```
-
-### 5. Lancer l'application
-
-```bash
-# Terminal 1 — Serveur API
-npm run server          # API légère (Neon)
-# ou
-cd backend && npm run dev   # API Express complète
-
-# Terminal 2 — Frontend
+# Terminal 3 — Front
 npm start
 ```
 
-Puis ouvrir **http://localhost:4200/**
+→ Ouvrir **http://localhost:4200/**
 
 ---
 
-## 🛠️ Commandes disponibles
+## 🛠️ Commandes utiles
 
 | Commande | Description |
 |---|---|
-| `npm start` | Lance le serveur de développement Angular |
-| `npm run build` | Build de production |
-| `npm run watch` | Build en mode watch (dev) |
-| `npm test` | Lance les tests unitaires (Vitest) |
-| `npm run lint` | Vérification ESLint + Prettier |
-| `npm run server` | Lance l'API légère (Neon serverless) |
-| `npm run db:seed` | Seed la base de données |
-| `cd backend && npm run dev` | Lance le backend Express complet |
-| `cd backend && npm run build` | Compile le backend TypeScript |
-| `cd backend && npm test` | Tests unitaires backend |
-| `docker compose up -d` | Démarre PostgreSQL + pgAdmin |
-| `docker compose down` | Arrête les conteneurs |
+| `npm start` | Dev server Angular |
+| `npm run build` | Build front production |
+| `npm test` | Tests Vitest front |
+| `cd backend && npm run dev` | API Express + Socket.io |
+| `cd backend && npm run worker` | Workers BullMQ |
+| `cd backend && npm test` | Tests Vitest backend |
+| `cd backend && npm run db:migrate` | Applique les migrations Drizzle |
+| `cd backend && npm run db:seed` | Seed de démo |
+| `node scripts/check-facturx.ts <file.pdf>` | Validation Factur-X EN 16931 |
+| `docker compose up -d` | Postgres + pgAdmin |
 
 ---
 
-## 🔌 API REST
+## 📚 Documentation
 
-L'API expose les endpoints suivants :
+Tout est dans [`docs/`](./docs/) :
 
-### Collections
-
-| Méthode | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/v1/collections` | Liste toutes les collections |
-| `GET` | `/api/v1/collections/:id` | Détail d'une collection |
-| `POST` | `/api/v1/collections` | Crée une collection |
-| `PUT` | `/api/v1/collections/:id` | Modifie une collection |
-| `DELETE` | `/api/v1/collections/:id` | Supprime une collection |
-
-### Items
-
-| Méthode | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/v1/collections/:cid/items` | Ajoute un item |
-| `PUT` | `/api/v1/collections/:cid/items/:iid` | Modifie un item |
-| `DELETE` | `/api/v1/collections/:cid/items/:iid` | Supprime un item |
-
-### Divers
-
-| Méthode | Endpoint | Description |
-|---|---|---|
-| `GET` | `/health` | Healthcheck |
-| `GET` | `/img/*` | Fichiers statiques (images) |
-
----
-
-## 🎨 Design System
-
-L'application utilise **Material Design 3** (Material You) avec un thème personnalisé via `material-theme.scss` :
-
-- 🌗 **Mode sombre automatique** — basé sur `prefers-color-scheme`
-- 🎨 **Couleurs dynamiques** — palette générée automatiquement
-- 🧩 **Composants Material** — cards, chips, dialogs, form fields, toolbar, sidenav
+- **[docs/README.md](./docs/README.md)** — entrée recruteur (TL;DR + parcours suggéré)
+- **[docs/guides/](./docs/guides/)** — 5 guides détaillés (overview, backend, features, frontend, data flows, glossaire)
+- **[docs/roadmap/](./docs/roadmap/)** — spec sprint par sprint
+- **[docs/adr/](./docs/adr/)** — 12 décisions techniques argumentées
+- **[docs/LEARNINGS.md](./docs/LEARNINGS.md)** — pièges rencontrés + solutions (matière STAR)
 
 ---
 
 ## 📄 Licence
 
-Ce projet est un projet personnel de démonstration.
+Projet personnel d'entraînement — usage non commercial.
 
----
-
-<p align="center">
-  Fait avec ❤️ en Angular 21
-</p>
+<p align="center"><em>Stack & décisions documentées sprint par sprint pour servir de support d'entretien.</em></p>
